@@ -9,6 +9,7 @@ package Modelo;
  * @author jotue
  */
 public class Custodio {
+    private int idCustodio;
     private String cedula;
     private String nombre;
     private String apellido;
@@ -17,11 +18,20 @@ public class Custodio {
     public Custodio() {
     }
 
-    public Custodio(String cedula, String nombre, String apellido, String rol) {
+    public Custodio(int idCustodio, String cedula, String nombre, String apellido, String rol) {
+        this.idCustodio = idCustodio;
         this.cedula = cedula;
         this.nombre = nombre;
         this.apellido = apellido;
         this.rol = rol;
+    }
+
+    public int getIdCustodio() {
+        return idCustodio;
+    }
+
+    public void setIdCustodio(int idCustodio) {
+        this.idCustodio = idCustodio;
     }
 
     public String getCedula() {
