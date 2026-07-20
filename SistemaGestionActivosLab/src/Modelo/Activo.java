@@ -4,7 +4,6 @@
  */
 package Modelo;
 
-
 public abstract class Activo {
 
     private int idActivo;

@@ -5,7 +5,7 @@ import javax.swing.table.DefaultTableModel;
 import Modelo.Activo; 
 import java.util.List;
 
-// Solo una clase, extendiendo JFrame directamente
+// extendiendo JFrame directamente
 public class Vista extends JFrame {
     
     private JTable tablaActivos;
@@ -16,7 +16,7 @@ public class Vista extends JFrame {
     public Vista() {
         // Configuramos la ventana básica
         this.setTitle("Gestión de Activos");
-        this.setSize(600, 400);
+        this.setSize(700, 500);
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         this.setLayout(new java.awt.FlowLayout());
         
@@ -43,13 +43,13 @@ public class Vista extends JFrame {
     public void mostrarLista(List<Activo> activos) {
         modeloTabla.setRowCount(0);
         for (Activo a : activos) {
-            // Asegúrate que Activo.java tenga el método getTipo() público
+            
             modeloTabla.addRow(new Object[]{a.getIdActivo(), a.getNombreActivo(), a.getMarca(), a.getTipo()});
         }
     }
 
     public Activo obtenerDatosFormulario() {
-        return null; // Aquí implementarás la creación del objeto
+        return null; //Implementar la creación del objeto
     }
 
     public String obtenerIdSeleccionado() {
