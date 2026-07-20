@@ -13,6 +13,6 @@ public interface CalcularMantenimiento {
      * Calcula el mantenimiento total.
      * @return costo total
      */
-    double calcularMantenimientoTotal();
+    double calcularCostoMantenimientoTotal();
     
 }

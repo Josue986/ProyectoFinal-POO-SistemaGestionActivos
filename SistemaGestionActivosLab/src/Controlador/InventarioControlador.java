@@ -274,7 +274,7 @@ public class InventarioControlador implements ActionListener, CalcularMantenimie
     }
     
     @Override
-    public double calcularMantenimientoTotal() {
+    public double calcularCostoMantenimientoTotal() {
         return 0.0;
     }
 }
