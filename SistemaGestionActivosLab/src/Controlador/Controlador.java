@@ -1,6 +1,6 @@
 package Controlador;
-//import vista.Vista ;
 
+import Vista.Vista;
 import DAOInterface.ActivoDAO; // Importa tu interfaz de DAO
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;

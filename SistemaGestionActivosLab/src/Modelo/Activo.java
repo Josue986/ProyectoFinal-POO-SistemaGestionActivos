@@ -4,16 +4,14 @@
  */
 package Modelo;
 
-/**
- *
- * @author jotue
- */
+
 public abstract class Activo {
+
     private int idActivo;
     private String nombreActivo;
     private String marca;
     private String tipoActivo;
-    private double costoAdquicicion;    
+    private double costoAdquicicion;
     private String estadoActivo;
     private Custodio custodio;
 
@@ -80,6 +78,10 @@ public abstract class Activo {
 
     public Custodio getCustodio() {
         return custodio;
+    }
+
+    public String getTipo() {
+        return this.getTipoActivo(); 
     }
 
     public void setCustodio(Custodio custodio) {
