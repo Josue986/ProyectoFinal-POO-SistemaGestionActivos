@@ -87,18 +87,23 @@ public class InventarioControlador implements ActionListener, CalcularMantenimie
     }
 
     public void registrarActivo() {
-        var activo = vista.obtenerDatosFormulario();
-        if (activo == null) {
-            JOptionPane.showMessageDialog(vista, "Formulario vacío o inválido");
+        try {
+            var activo = vista.obtenerDatosFormulario();
+            if (activo == null) {
+                JOptionPane.showMessageDialog(vista, "Formulario vacío o inválido");
             return;
-        }
+            }
 
-        if (activoDAO.guardar(activo)) {
-            JOptionPane.showMessageDialog(vista, "Activo guardado con éxito!");
-            listarActivos();
-        } else {
-            JOptionPane.showMessageDialog(vista, "Error al guardar el activo");
-        }
+            if (activoDAO.guardar(activo)) {
+                JOptionPane.showMessageDialog(vista, "Activo guardado con éxito!");
+                listarActivos();
+            } else {
+                JOptionPane.showMessageDialog(vista, "Error al guardar el activo");
+            }
+        } catch (Exception ex){
+        ex.printStackTrace();
+        JOptionPane.showMessageDialog(vista, "Excepción al guardar: " + ex.getMessage());
+    }
     }
 
     public void listarActivos() {

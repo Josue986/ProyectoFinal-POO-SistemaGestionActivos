@@ -294,10 +294,13 @@ public class Vista extends JFrame {
         String estado = txtEstadoActivo.getText().trim();
 
         if (nombre.isEmpty() || estado.isEmpty()) {
+            JOptionPane.showMessageDialog(this, 
+                "Por favor llena los campos obligatorios: Nombre y Estado del Activo.", 
+                "Campos Incompletos", JOptionPane.WARNING_MESSAGE);
             return null;
         }
 
-        // Sanitización de formato numérico (remueve comas y espacios extra)
+        // Correcion de formato numérico por estabilidad (remueve comas y espacios extra)
         String costoStr = txtCostoActivo.getText().trim().replace(",", ".");
         double costo = costoStr.isEmpty() ? 0.0 : Double.parseDouble(costoStr);
 
@@ -317,7 +320,7 @@ public class Vista extends JFrame {
                 return new Hardware(anniosUso, idActivo, nombre, marca, tipo, costo, estado, custodioAux);
 
             case "Periferico":
-                String tipoConexion = "Generico"; 
+                String tipoConexion = "USB / Generico"; 
                 return new Periferico(anniosUso, tipoConexion, idActivo, nombre, marca, tipo, costo, estado, custodioAux);
 
             case "Licencia":
@@ -343,10 +346,13 @@ public class Vista extends JFrame {
         }
 
     } catch (NumberFormatException e) {
-        JOptionPane.showMessageDialog(this, "El costo o los años de uso deben ser valores numéricos válidos.", "Error de Formato", JOptionPane.ERROR_MESSAGE);
+        JOptionPane.showMessageDialog(this, "El costo o los años de uso e ID de Custodio deben ser valores numéricos válidos.", 
+        "Error de Formato", JOptionPane.ERROR_MESSAGE);
         return null;
     } catch (Exception e) {
-        System.err.println("Error en obtenerDatosFormulario: " + e.getMessage());
+        JOptionPane.showMessageDialog(this, 
+            "Error insospechado al construir el activo: " + e.getMessage(), 
+            "Error", JOptionPane.ERROR_MESSAGE);
         return null;
     }
     }

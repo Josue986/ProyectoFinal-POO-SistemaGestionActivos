@@ -5,7 +5,7 @@
 package DAOImpl;
 import DAOInterface.RegMantenimientoDAO;
 import Conexion.ConexionSQLite;
-import Modelo.RegMantenimiento;
+import Modelo.*;
 
 import java.sql.*;
 import java.text.SimpleDateFormat;
@@ -94,7 +94,9 @@ public class RegMantenimientoDAOImpl implements RegMantenimientoDAO {
     @Override
     public List<RegMantenimiento> obtenerTodos() {
         List<RegMantenimiento> lista = new ArrayList<>();
-        String sql = "SELECT * FROM mantenimientos";
+        String sql = "SELECT m.*, a.nombreActivo " +
+             "FROM mantenimientos m " +
+             "LEFT JOIN activos a ON m.id_activo = a.idActivo";
 
         try (Connection conn = ConexionSQLite.conectar();
              Statement stmt = conn.createStatement();
@@ -115,7 +117,10 @@ public class RegMantenimientoDAOImpl implements RegMantenimientoDAO {
     @Override
     public List<RegMantenimiento> obtenerRegMantenimientosActivo(int idActivo) {
         List<RegMantenimiento> lista = new ArrayList<>();
-        String sql = "SELECT * FROM mantenimientos WHERE id_activo = ?";
+        String sql = "SELECT m.*, a.nombreActivo " +
+                     "FROM mantenimientos m " +
+                     "LEFT JOIN activos a ON m.id_activo = a.idActivo " +
+                     "WHERE m.id_activo = ?";
 
         try (Connection conn = ConexionSQLite.conectar();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -150,9 +155,23 @@ public class RegMantenimientoDAOImpl implements RegMantenimientoDAO {
 
         int idActivo = rs.getInt("id_activo");
         int idUsuario = rs.getInt("id_usuario");
+        
+        String nombreActivo = null;
+        try {
+            nombreActivo = rs.getString("nombreActivo");
+        } catch (SQLException ignored) {
+            // Si la columna no estaba presente en la consulta SQL
+        }
+        
+        if (nombreActivo == null || nombreActivo.trim().isEmpty()) {
+            nombreActivo = "Activo #" + idActivo;
+        }
 
         // Instanciación dummy para evitar NullPointerException en la Vista
-        Modelo.Activo activoDummy = new Modelo.Hardware(0, idActivo, "Activo #" + idActivo, "", "Hardware", 0.0, "", null);
+        Custodio custodioDummy = null;
+        Modelo.Activo activoDummy = new Modelo.Hardware(
+            0, idActivo, nombreActivo, "", "Hardware", 0.0, "Disponible", custodioDummy //[cite: 20]
+        );
         Modelo.Usuario usuarioDummy = new Modelo.Usuario(idUsuario, null);
 
         RegMantenimiento reg = new RegMantenimiento(id, detalles, fInicio, fFin, activoDummy, usuarioDummy);

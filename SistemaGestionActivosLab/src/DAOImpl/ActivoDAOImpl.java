@@ -230,21 +230,21 @@ public class ActivoDAOImpl implements ActivoDAO {
         List<Activo> lista = new ArrayList<>();
         // LEFT JOINs con todas las tablas hijas para obtener la info completa en una sola consulta
         String sql = "SELECT a.*, " +
-                     "c.anniosUso AS cpu_uso, c.procesador, c.memoriaRAM, c.almacenamiento, " +
-                     "m.anniosUso AS mon_uso, m.tipoConexion AS mon_conexion, m.resolucion, m.tasaRefresco, " +
-                     "ms.anniosUso AS mouse_uso, ms.tipoConexion AS mouse_conexion, ms.dpi, " +
-                     "l.fechaExpiracion, l.costoRenovacion, " +
-                     "cust.nombre AS cust_nombre, cust.apellido AS cust_apellido " +
-                     "FROM activos a " +
-                     "LEFT JOIN cpus c ON a.idActivo = c.idActivo " +
-                     "LEFT JOIN monitores m ON a.idActivo = m.idActivo " +
-                     "LEFT JOIN mouses ms ON a.idActivo = ms.idActivo " +
-                     "LEFT JOIN licencias l ON a.idActivo = l.idActivo " +
-                     "LEFT JOIN custodios cust ON a.id_custodio = cust.idCustodio";
+                 "c.anniosUso AS cpu_uso, c.procesador, c.memoriaRAM, c.almacenamiento, " +
+                 "m.anniosUso AS mon_uso, m.tipoConexion AS mon_conexion, m.resolucion, m.tasaRefresco, " +
+                 "ms.anniosUso AS mouse_uso, ms.tipoConexion AS mouse_conexion, ms.dpi, " +
+                 "l.fechaExpiracion, l.costoRenovacion, " +
+                 "cust.nombre AS cust_nombre, cust.apellido AS cust_apellido " +
+                 "FROM activos a " +
+                 "LEFT JOIN cpus c ON a.idActivo = c.idActivo " +
+                 "LEFT JOIN monitores m ON a.idActivo = m.idActivo " +
+                 "LEFT JOIN mouses ms ON a.idActivo = ms.idActivo " +
+                 "LEFT JOIN licencias l ON a.idActivo = l.idActivo " +
+                 "LEFT JOIN custodios cust ON a.id_custodio = cust.idCustodio";
 
         try (Connection conn = ConexionSQLite.conectar();
-             Statement stmt = conn.createStatement();
-             ResultSet rs = stmt.executeQuery(sql)) {
+         Statement stmt = conn.createStatement();
+         ResultSet rs = stmt.executeQuery(sql)) {
 
             while (rs.next()) {
                 int id = rs.getInt("idActivo");
@@ -279,7 +279,9 @@ public class ActivoDAOImpl implements ActivoDAO {
                         rs.getString("tasaRefresco"),
                         rs.getInt("mon_uso"),
                         rs.getString("mon_conexion"),
-                        id, nombre, marca, tipo, 0.0, estado, costo, custodio
+                        id, nombre, marca, tipo, 
+                        0.0, // costoMantenimiento
+                        estado, costo, custodio
                     );
                 } else if ("MOUSE".equalsIgnoreCase(tipo) || rs.getString("dpi") != null) {
                     activo = new Mouse(
@@ -289,13 +291,20 @@ public class ActivoDAOImpl implements ActivoDAO {
                         id, nombre, marca, tipo, costo, estado, custodio
                     );
                 } else if ("LICENCIA".equalsIgnoreCase(tipo) || rs.getString("fechaExpiracion") != null) {
-                    // Por defecto se puede instanciar como Hardware básico u otra subclase
                     activo = new Licencia(
                         null, // Se asigna null o se parsea si existe
                         rs.getDouble("costoRenovacion"),
-                        id, nombre, marca, tipo, 0.0, estado, costo, custodio
+                        id, nombre, marca, tipo, 
+                        0.0, //costoMantenimiento
+                        estado, costo, custodio
                     );
-                }
+                } else if ("PERIFERICO".equalsIgnoreCase(tipo)) {
+                activo = new Periferico(0, "USB/Genérico", id, nombre, marca, tipo, costo, estado, custodio);
+            } 
+            // 6. HARDWARE GENÉRICO (por defecto)
+            else {
+                activo = new Hardware(0, id, nombre, marca, tipo, costo, estado, custodio);
+            }
 
                 if (activo != null) {
                     lista.add(activo);
