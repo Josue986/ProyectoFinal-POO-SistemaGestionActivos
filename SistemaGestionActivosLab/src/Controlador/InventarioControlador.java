@@ -116,6 +116,18 @@ public class InventarioControlador implements ActionListener, CalcularMantenimie
         //vista.mostrarListaMantenimientos(lista); // Ajusta al método de tu Vista
     }
     
+    public void listarRegMantenimientosPorActivo() {
+        // TODO: String idSeleccionado = vista.obtenerIdSeleccionado();
+        String idSeleccionado = null;
+        if (idSeleccionado != null) {
+            int idActivo = Integer.parseInt(idSeleccionado);
+            var lista = regMantenimientoDAO.obtenerRegMantenimientosActivo(idActivo);
+            // TODO: vista.mostrarListaMantenimientos(lista);
+        } else {
+            JOptionPane.showMessageDialog(vista, "Seleccione un activo para ver sus mantenimientos");
+        }
+    }
+    
     public void actualizarRegMantenimiento() {
         // TODO: var mantenimiento = vista.obtenerDatosMantenimientoModificado();
         RegMantenimiento mantenimiento = null;
