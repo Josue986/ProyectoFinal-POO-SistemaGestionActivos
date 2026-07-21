@@ -12,36 +12,34 @@ import java.util.Date;
 public class Vista extends JFrame {
     
     //--- Pestaña 1: ACTIVOS ---
-    public JTextField txtIdActivo, txtNombreActivo, txtMarcaActivo, txtTipoActivo, txtCostoActivo, txtEstadoActivo, txtIdCustodioActivo;
+    public JTextField txtIdActivo, txtNombreActivo, txtMarcaActivo, txtCostoActivo, txtEstadoActivo, txtIdCustodioActivo, txtAnniosUsoActivo;
+    public JComboBox<String> cbTipoActivo;
     public JButton btnGuardarActivo, btnActualizarActivo, btnEliminarActivo;
-    private JTable tablaActivos;
+    public JTable tablaActivos;
     private DefaultTableModel modeloTablaActivos;
     
     //--- Pestaña 2: CUSTODIOS ---
     public JTextField txtIdCustodio, txtCedulaCustodio, txtNombreCustodio, txtApellidoCustodio, txtRolCustodio;
     public JButton btnGuardarCustodio, btnActualizarCustodio, btnEliminarCustodio;
-    private JTable tablaCustodios;
+    public JTable tablaCustodios;
     private DefaultTableModel modeloTablaCustodios;
 
     //--- Pestaña 3: USUARIOS ---
     public JTextField txtIdUsuario, txtIdCustodioUsuario;
     public JButton btnGuardarUsuario, btnActualizarUsuario, btnEliminarUsuario;
-    private JTable tablaUsuarios;
+    public JTable tablaUsuarios;
     private DefaultTableModel modeloTablaUsuarios;
 
     //--- Pestaña 4: MANTENIMIENTOS ---
     public JTextField txtIdMantenimiento, txtDetallesMantenimiento, txtFechaInicioMantenimiento, txtFechaFinMantenimiento, txtCostoMantenimiento, txtIdActivoMantenimiento, txtIdUsuarioMantenimiento;
     public JButton btnGuardarMantenimiento, btnActualizarMantenimiento, btnEliminarMantenimiento, btnFiltrarMantenimientoActivo;
-    private JTable tablaMantenimientos;
+    public JTable tablaMantenimientos;
     private DefaultTableModel modeloTablaMantenimientos;
-    
-    //--- Botones Generales para compatibilidad ---
-    public JButton btnGuardar, btnEliminar;
 
     public Vista() {
         // Configuramos la ventana básica
         this.setTitle("Sistema de Gestión de Activos e Inventarios - UTPL");
-        this.setSize(950, 700);
+        this.setSize(1000, 700);
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
 
@@ -59,17 +57,21 @@ public class Vista extends JFrame {
     private JPanel crearPanelActivos() {
         JPanel panel = new JPanel(new BorderLayout());
 
-        JPanel panelForm = new JPanel(new GridLayout(7, 2, 5, 5));
+        JPanel panelForm = new JPanel(new GridLayout(8, 2, 5, 5));
         panelForm.setBorder(BorderFactory.createTitledBorder("Datos del Activo"));
 
         txtIdActivo = new JTextField();
         txtIdActivo.setEditable(false);
         txtNombreActivo = new JTextField();
         txtMarcaActivo = new JTextField();
-        txtTipoActivo = new JTextField();
+        
+        // JComboBox con las opciones concretas
+        cbTipoActivo = new JComboBox<>(new String[]{"Hardware", "Periferico", "Licencia"});
+        
         txtCostoActivo = new JTextField();
         txtEstadoActivo = new JTextField();
         txtIdCustodioActivo = new JTextField();
+        txtAnniosUsoActivo = new JTextField("0");
 
         panelForm.add(new JLabel("ID Activo:"));
         panelForm.add(txtIdActivo);
@@ -78,9 +80,11 @@ public class Vista extends JFrame {
         panelForm.add(new JLabel("Marca:"));
         panelForm.add(txtMarcaActivo);
         panelForm.add(new JLabel("Tipo Activo:"));
-        panelForm.add(txtTipoActivo);
+        panelForm.add(cbTipoActivo);
         panelForm.add(new JLabel("Costo Adquisición ($):"));
         panelForm.add(txtCostoActivo);
+        panelForm.add(new JLabel("Años de Uso:"));
+        panelForm.add(txtAnniosUsoActivo);
         panelForm.add(new JLabel("Estado Activo:"));
         panelForm.add(txtEstadoActivo);
         panelForm.add(new JLabel("ID Custodio:"));
@@ -90,10 +94,6 @@ public class Vista extends JFrame {
         btnGuardarActivo = new JButton("Guardar");
         btnActualizarActivo = new JButton("Actualizar");
         btnEliminarActivo = new JButton("Eliminar");
-
-        // Alias para compatibilidad con el controlador
-        btnGuardar = btnGuardarActivo;
-        btnEliminar = btnEliminarActivo;
 
         panelBotones.add(btnGuardarActivo);
         panelBotones.add(btnActualizarActivo);
@@ -283,33 +283,101 @@ public class Vista extends JFrame {
     
     public Activo obtenerDatosFormulario() {
         try {
-            String nombre = txtNombreActivo.getText().trim();
-            String marca = txtMarcaActivo.getText().trim();
-            String tipo = txtTipoActivo.getText().trim();
-            double costo = Double.parseDouble(txtCostoActivo.getText().trim());
-            String estado = txtEstadoActivo.getText().trim();
+        int idActivo = 0;
+        if (!txtIdActivo.getText().trim().isEmpty()) {
+            idActivo = Integer.parseInt(txtIdActivo.getText().trim());
+        }
 
-            int idCustodio = Integer.parseInt(txtIdCustodioActivo.getText().trim());
-            Custodio custodioAux = new Custodio();
-            custodioAux.setIdCustodio(idCustodio);
+        String nombre = txtNombreActivo.getText().trim();
+        String marca = txtMarcaActivo.getText().trim();
+        String tipo = cbTipoActivo.getSelectedItem().toString();
+        String estado = txtEstadoActivo.getText().trim();
 
-            if (nombre.isEmpty() || tipo.isEmpty() || estado.isEmpty()) {
-                return null;
-            }
-
-            // Usamos Hardware como instancia concreta de la clase abstracta Activo
-            return new Hardware(0, 0, nombre, marca, tipo, costo, estado, custodioAux);
-        } catch (Exception e) {
+        if (nombre.isEmpty() || estado.isEmpty()) {
             return null;
         }
+
+        // Sanitización de formato numérico (remueve comas y espacios extra)
+        String costoStr = txtCostoActivo.getText().trim().replace(",", ".");
+        double costo = costoStr.isEmpty() ? 0.0 : Double.parseDouble(costoStr);
+
+        int anniosUso = txtAnniosUsoActivo.getText().trim().isEmpty() 
+            ? 0 
+            : Integer.parseInt(txtAnniosUsoActivo.getText().trim());
+
+        Custodio custodioAux = null;
+        if (!txtIdCustodioActivo.getText().trim().isEmpty()) {
+            int idCustodio = Integer.parseInt(txtIdCustodioActivo.getText().trim());
+            custodioAux = new Custodio();
+            custodioAux.setIdCustodio(idCustodio);
+        }
+
+        switch (tipo) {
+            case "Hardware":
+                return new Hardware(anniosUso, idActivo, nombre, marca, tipo, costo, estado, custodioAux);
+
+            case "Periferico":
+                String tipoConexion = "Generico"; 
+                return new Periferico(anniosUso, tipoConexion, idActivo, nombre, marca, tipo, costo, estado, custodioAux);
+
+            case "Licencia":
+                Date fechaExpiracionPorDefecto = new Date();
+                double costoRenovacion = 0.0;
+                double costoMantenimiento = 0.0;
+
+                return new Licencia(
+                    fechaExpiracionPorDefecto, 
+                    costoRenovacion, 
+                    idActivo, 
+                    nombre, 
+                    marca, 
+                    tipo, 
+                    costoMantenimiento, 
+                    estado, 
+                    costo, 
+                    custodioAux
+                );
+
+            default:
+                return new Hardware(anniosUso, idActivo, nombre, marca, tipo, costo, estado, custodioAux);
+        }
+
+    } catch (NumberFormatException e) {
+        JOptionPane.showMessageDialog(this, "El costo o los años de uso deben ser valores numéricos válidos.", "Error de Formato", JOptionPane.ERROR_MESSAGE);
+        return null;
+    } catch (Exception e) {
+        System.err.println("Error en obtenerDatosFormulario: " + e.getMessage());
+        return null;
+    }
     }
     
-    public String obtenerIdSeleccionado() {
+    public void cargarFormularioActivoDesdeTabla() {
+    int fila = tablaActivos.getSelectedRow();
+    if (fila != -1) {
+        txtIdActivo.setText(tablaActivos.getValueAt(fila, 0).toString());
+        txtNombreActivo.setText(tablaActivos.getValueAt(fila, 1).toString());
+        txtMarcaActivo.setText(tablaActivos.getValueAt(fila, 2).toString());
+        cbTipoActivo.setSelectedItem(tablaActivos.getValueAt(fila, 3).toString());
+        txtCostoActivo.setText(tablaActivos.getValueAt(fila, 4).toString());
+        txtEstadoActivo.setText(tablaActivos.getValueAt(fila, 5).toString());
+        
+        // Carga auxiliar para prevenir campos vacíos al actualizar
+        txtAnniosUsoActivo.setText("0");
+        txtIdCustodioActivo.setText("");
+    }
+}
+    
+    // --- ACTIVOS ---
+    public String obtenerIdActivoSeleccionado() {
         int fila = tablaActivos.getSelectedRow();
         return (fila != -1) ? tablaActivos.getValueAt(fila, 0).toString() : null;
     }
     
     // --- CUSTODIOS ---
+    public String obtenerIdCustodioSeleccionado() {
+        int fila = tablaCustodios.getSelectedRow();
+        return (fila != -1) ? tablaCustodios.getValueAt(fila, 0).toString() : null;
+    }
     public void mostrarListaCustodios(List<Custodio> custodios) {
         modeloTablaCustodios.setRowCount(0);
         if (custodios != null) {
@@ -341,7 +409,12 @@ public class Vista extends JFrame {
         }
     }
     
-    // --- USUARIOS ---
+    // --- USUARIOS ---  
+    public String obtenerIdUsuarioSeleccionado() {
+        int fila = tablaUsuarios.getSelectedRow();
+        return (fila != -1) ? tablaUsuarios.getValueAt(fila, 0).toString() : null;
+    }
+    
     public void mostrarListaUsuarios(List<Usuario> usuarios) {
         modeloTablaUsuarios.setRowCount(0);
         if (usuarios != null) {
@@ -371,6 +444,11 @@ public class Vista extends JFrame {
     }
     
     // --- MANTENIMIENTOS ---
+    public String obtenerIdMantenimientoSeleccionado() {
+        int fila = tablaMantenimientos.getSelectedRow();
+        return (fila != -1) ? tablaMantenimientos.getValueAt(fila, 0).toString() : null;
+    }
+    
     public void mostrarListaMantenimientos(List<RegMantenimiento> mantenimientos) {
         modeloTablaMantenimientos.setRowCount(0);
         if (mantenimientos != null) {
@@ -393,42 +471,36 @@ public class Vista extends JFrame {
     
     public RegMantenimiento obtenerDatosMantenimiento() {
         try {
-            String detalles = txtDetallesMantenimiento.getText().trim();
-            String fInicioStr = txtFechaInicioMantenimiento.getText().trim();
-            String fFinStr = txtFechaFinMantenimiento.getText().trim();      
-            
-            // Validación de campos vacíos obligatorios
+        String detalles = txtDetallesMantenimiento.getText().trim();
+        String fInicioStr = txtFechaInicioMantenimiento.getText().trim();
+        String fFinStr = txtFechaFinMantenimiento.getText().trim();      
+        
         if (detalles.isEmpty() || fInicioStr.isEmpty() || 
             txtIdActivoMantenimiento.getText().trim().isEmpty() || 
             txtIdUsuarioMantenimiento.getText().trim().isEmpty()) {
             return null;
         }
 
-        double costo = txtCostoMantenimiento.getText().trim().isEmpty() 
-            ? 0.0 
-            : Double.parseDouble(txtCostoMantenimiento.getText().trim());
-            
-            // Obtener IDs asociados
-            int idActivo = Integer.parseInt(txtIdActivoMantenimiento.getText().trim());
-            Activo activoAux = new Hardware(idActivo, 0, "", "", "", 0.0, "", null);
-            activoAux.setIdActivo(idActivo);
+        String costoStr = txtCostoMantenimiento.getText().trim().replace(",", ".");
+        double costo = costoStr.isEmpty() ? 0.0 : Double.parseDouble(costoStr);
+        
+        int idActivo = Integer.parseInt(txtIdActivoMantenimiento.getText().trim());
+        // Firma exacta: (anniosUso = 0, idActivo = idActivo, nombre, marca, tipo, costo, estado, custodio)
+        Activo activoAux = new Hardware(0, idActivo, "", "", "Hardware", 0.0, "", null);
 
-            int idUsuario = Integer.parseInt(txtIdUsuarioMantenimiento.getText().trim());
-            Usuario usuarioAux = new Usuario(idUsuario, null);
+        int idUsuario = Integer.parseInt(txtIdUsuarioMantenimiento.getText().trim());
+        Usuario usuarioAux = new Usuario(idUsuario, null);
 
-            if (detalles.isEmpty() || fInicioStr.isEmpty()) return null;
-
-            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-            Date fInicio = sdf.parse(fInicioStr);
-            Date fFin = fFinStr.isEmpty() ? null : sdf.parse(fFinStr);
-            
-            // Construcción y retorno del objeto
-            RegMantenimiento reg = new RegMantenimiento(0, detalles, fInicio, fFin, activoAux, usuarioAux);
-            reg.setCostoMantenimiento(costo);
-            return reg;
-        } catch (Exception e) {
-            e.printStackTrace();
-            return null;
-        }
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+        Date fInicio = sdf.parse(fInicioStr);
+        Date fFin = fFinStr.isEmpty() ? null : sdf.parse(fFinStr);
+        
+        RegMantenimiento reg = new RegMantenimiento(0, detalles, fInicio, fFin, activoAux, usuarioAux);
+        reg.setCostoMantenimiento(costo);
+        return reg;
+    } catch (Exception e) {
+        System.err.println("Error en obtenerDatosMantenimiento: " + e.getMessage());
+        return null;
+    }
     }
 }
