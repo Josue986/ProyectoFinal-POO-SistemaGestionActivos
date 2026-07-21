@@ -31,18 +31,59 @@ public class InventarioControlador implements ActionListener, CalcularMantenimie
 
         // Aquí le decimos a los botones que, al ser presionados, 
         // avisen a esta clase (el controlador)
+        
+        // Activos
         this.vista.btnGuardar.addActionListener(this);
+        this.vista.btnActualizarActivo.addActionListener(this);
         this.vista.btnEliminar.addActionListener(this);
+        
+        // Custodios
+        this.vista.btnGuardarCustodio.addActionListener(this);
+        this.vista.btnActualizarCustodio.addActionListener(this);
+        this.vista.btnEliminarCustodio.addActionListener(this);
+
+        // Usuarios
+        this.vista.btnGuardarUsuario.addActionListener(this);
+        this.vista.btnActualizarUsuario.addActionListener(this);
+        this.vista.btnEliminarUsuario.addActionListener(this);
+
+        // Mantenimientos
+        this.vista.btnGuardarMantenimiento.addActionListener(this);
+        this.vista.btnActualizarMantenimiento.addActionListener(this);
+        this.vista.btnEliminarMantenimiento.addActionListener(this);
+        this.vista.btnFiltrarMantenimientoActivo.addActionListener(this);
+        
+        // Cargar listas iniciales
+        listarActivos();
+        listarCustodios();
+        listarUsuarios();
+        listarRegMantenimientos();
     }
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        // ¿Qué botón se presionó?
-        if (e.getSource() == vista.btnGuardar) {
-            registrarActivo();
-        } else if (e.getSource() == vista.btnEliminar) {
-            eliminarActivo();
-        }
+        Object src = e.getSource();
+        
+        // --- ACTIVOS ---
+        if (src == vista.btnGuardarActivo) registrarActivo();
+        else if (src == vista.btnActualizarActivo) actualizarActivo();
+        else if (src == vista.btnEliminarActivo) eliminarActivo();
+        
+        // --- CUSTODIOS ---
+        else if (src == vista.btnGuardarCustodio) registrarCustodio();
+        else if (src == vista.btnActualizarCustodio) actualizarCustodio();
+        else if (src == vista.btnEliminarCustodio) eliminarCustodio();
+
+        // --- USUARIOS ---
+        else if (src == vista.btnGuardarUsuario) registrarUsuario();
+        else if (src == vista.btnActualizarUsuario) actualizarUsuario();
+        else if (src == vista.btnEliminarUsuario) eliminarUsuario();
+
+        // --- MANTENIMIENTOS ---
+        else if (src == vista.btnGuardarMantenimiento) registrarRegMantenimiento();
+        else if (src == vista.btnActualizarMantenimiento) actualizarRegMantenimiento();
+        else if (src == vista.btnEliminarMantenimiento) eliminarRegMantenimiento();
+        else if (src == vista.btnFiltrarMantenimientoActivo) listarRegMantenimientosPorActivo();
     }
 
     public void registrarActivo() {
@@ -53,7 +94,7 @@ public class InventarioControlador implements ActionListener, CalcularMantenimie
         }
 
         if (activoDAO.guardar(activo)) {
-            JOptionPane.showMessageDialog(vista, "¡Activo guardado con éxito!");
+            JOptionPane.showMessageDialog(vista, "Activo guardado con éxito!");
             listarActivos();
         } else {
             JOptionPane.showMessageDialog(vista, "Error al guardar el activo");
@@ -61,19 +102,20 @@ public class InventarioControlador implements ActionListener, CalcularMantenimie
     }
 
     public void listarActivos() {
-        var lista = activoDAO.obtenerTodos();
-        vista.mostrarLista(lista);
+        vista.mostrarLista(activoDAO.obtenerTodos());
     }
 
     public void actualizarActivo() {
-        // Implementar lógica de modificación
-        Activo activo = null;
-        if (activo != null && activoDAO.actualizar(activo)) {
-            JOptionPane.showMessageDialog(vista, "Activo actualizado con éxito");
-            listarActivos();
-        } else {
-            JOptionPane.showMessageDialog(vista, "Error al actualizar el activo");
+        Activo activo = vista.obtenerDatosFormulario();
+        if (activo != null && !vista.txtIdActivo.getText().trim().isEmpty()) {
+            activo.setIdActivo(Integer.parseInt(vista.txtIdActivo.getText().trim()));
+            if (activoDAO.actualizar(activo)) {
+                JOptionPane.showMessageDialog(vista, "Activo actualizado con éxito");
+                listarActivos();
+                return;
+            }
         }
+        JOptionPane.showMessageDialog(vista, "Error al actualizar o active/seleccione un registro");
     }
 
     public void eliminarActivo() {
@@ -96,8 +138,7 @@ public class InventarioControlador implements ActionListener, CalcularMantenimie
 
     // Métodos para Registro de Mantenimientos
     public void registrarRegMantenimiento() {
-        //var mantenimiento = vista.obtenerDatosMantenimiento(); // Ajusta al nombre real en tu Vista
-        RegMantenimiento mantenimiento = null;
+        RegMantenimiento mantenimiento = vista.obtenerDatosMantenimiento();
         if (mantenimiento == null) {
             JOptionPane.showMessageDialog(vista, "Formulario de mantenimiento vacío o inválido");
             return;
@@ -112,39 +153,37 @@ public class InventarioControlador implements ActionListener, CalcularMantenimie
     }
 
     public void listarRegMantenimientos() {
-        var lista = regMantenimientoDAO.obtenerTodos();
-        //vista.mostrarListaMantenimientos(lista); // Ajusta al método de tu Vista
+        vista.mostrarListaMantenimientos(regMantenimientoDAO.obtenerTodos());
     }
 
     
     public void listarRegMantenimientosPorActivo() {
-        // TODO: String idSeleccionado = vista.obtenerIdSeleccionado();
-        String idSeleccionado = null;
-        if (idSeleccionado != null) {
-            int idActivo = Integer.parseInt(idSeleccionado);
-            var lista = regMantenimientoDAO.obtenerRegMantenimientosActivo(idActivo);
-            // TODO: vista.mostrarListaMantenimientos(lista);
+        String idText = vista.txtIdActivoMantenimiento.getText().trim();
+        if (!idText.isEmpty()) {
+            int idActivo = Integer.parseInt(idText);       
+            vista.mostrarListaMantenimientos(regMantenimientoDAO.obtenerRegMantenimientosActivo(idActivo));
         } else {
-            JOptionPane.showMessageDialog(vista, "Seleccione un activo para ver sus mantenimientos");
+            JOptionPane.showMessageDialog(vista, "Ingrese el ID del activo en el campo correspondiente para filtrar");
         }
     }
     
     public void actualizarRegMantenimiento() {
-        // TODO: var mantenimiento = vista.obtenerDatosMantenimientoModificado();
-        RegMantenimiento mantenimiento = null;
-        if (mantenimiento != null && regMantenimientoDAO.actualizar(mantenimiento)) {
-            JOptionPane.showMessageDialog(vista, "Mantenimiento actualizado con éxito");
-            listarRegMantenimientos();
-        } else {
-            JOptionPane.showMessageDialog(vista, "Error al actualizar el mantenimiento");
+        RegMantenimiento mantenimiento = vista.obtenerDatosMantenimiento();
+        if (mantenimiento != null && !vista.txtIdMantenimiento.getText().trim().isEmpty()) {
+            mantenimiento.setIdMantenimiento(Integer.parseInt(vista.txtIdMantenimiento.getText().trim()));
+            if (regMantenimientoDAO.actualizar(mantenimiento)) {
+                JOptionPane.showMessageDialog(vista, "Mantenimiento actualizado con éxito");
+                listarRegMantenimientos();
+                return;
+            }
         }
+        JOptionPane.showMessageDialog(vista, "Error al actualizar o seleccione un mantenimiento");
     }
 
     public void eliminarRegMantenimiento() {
-        //String idSeleccionado = vista.obtenerIdMantenimientoSeleccionado();
-        String idSeleccionado = null;
-        if (idSeleccionado != null) {
-            int id = Integer.parseInt(idSeleccionado);
+        String idText = vista.txtIdMantenimiento.getText().trim();
+        if (!idText.isEmpty()) {
+            int id = Integer.parseInt(idText);
             if (regMantenimientoDAO.eliminar(id)) {
                 JOptionPane.showMessageDialog(vista, "Registro de mantenimiento eliminado");
                 listarRegMantenimientos();
@@ -152,7 +191,7 @@ public class InventarioControlador implements ActionListener, CalcularMantenimie
                 JOptionPane.showMessageDialog(vista, "Error al eliminar el mantenimiento");
             }
         } else {
-            JOptionPane.showMessageDialog(vista, "Seleccione un registro de mantenimiento de la tabla");
+            JOptionPane.showMessageDialog(vista, "Ingrese el ID del mantenimiento a eliminar");
         }
     }
 
@@ -168,14 +207,14 @@ public class InventarioControlador implements ActionListener, CalcularMantenimie
     // Métodos para Usuarios
     public void registrarUsuario() {
         //var usuario = vista.obtenerDatosUsuario();
-        Usuario usuario = null;
+        Usuario usuario =vista.obtenerDatosUsuario();
         if (usuario == null) {
             JOptionPane.showMessageDialog(vista, "Formulario de usuario vacío o inválido");
             return;
         }
 
         if (usuarioDAO.guardar(usuario)) {
-            JOptionPane.showMessageDialog(vista, "¡Usuario guardado con éxito!");
+            JOptionPane.showMessageDialog(vista, "Usuario guardado con éxito!");
             listarUsuarios();
         } else {
             JOptionPane.showMessageDialog(vista, "Error al guardar el usuario");
@@ -183,26 +222,26 @@ public class InventarioControlador implements ActionListener, CalcularMantenimie
     }
 
     public void listarUsuarios() {
-        var lista = usuarioDAO.obtenerTodos();
-        //vista.mostrarListaUsuarios(lista);
+        vista.mostrarListaUsuarios(usuarioDAO.obtenerTodos());
     }
 
-    public void actualizarUsuario() {
-        //var usuario = vista.obtenerDatosUsuarioModificado(); // Debe incluir el ID
-        Usuario usuario = null;
-        if (usuario != null && usuarioDAO.actualizar(usuario)) {
-            JOptionPane.showMessageDialog(vista, "Usuario modificado con éxito");
-            listarUsuarios();
-        } else {
-            JOptionPane.showMessageDialog(vista, "Error al modificar el usuario");
+    public void actualizarUsuario() {     
+        Usuario usuario = vista.obtenerDatosUsuario();
+        if (usuario != null && !vista.txtIdUsuario.getText().trim().isEmpty()) {
+            usuario.setIdUsuario(Integer.parseInt(vista.txtIdUsuario.getText().trim()));
+            if (usuarioDAO.actualizar(usuario)) {
+                JOptionPane.showMessageDialog(vista, "Usuario modificado con éxito");
+                listarUsuarios();
+                return;
+            }
         }
+        JOptionPane.showMessageDialog(vista, "Error al modificar el usuario");
     }
 
     public void eliminarUsuario() {
-        //String idSeleccionado = vista.obtenerIdUsuarioSeleccionado();
-        String idSeleccionado = null;
-        if (idSeleccionado != null) {
-            int id = Integer.parseInt(idSeleccionado);
+        String idText = vista.txtIdUsuario.getText().trim();
+        if (!idText.isEmpty()) {
+            int id = Integer.parseInt(idText);
             if (usuarioDAO.eliminar(id)) {
                 JOptionPane.showMessageDialog(vista, "Usuario eliminado");
                 listarUsuarios();
@@ -225,14 +264,14 @@ public class InventarioControlador implements ActionListener, CalcularMantenimie
     // Métodos para Custodios
     public void registrarCustodio() {
         //var custodio = vista.obtenerDatosCustodio();
-        Custodio custodio = null;
+        Custodio custodio = vista.obtenerDatosCustodio();
         if (custodio == null) {
             //JOptionPane.showMessageDialog(vista, "Formulario de custodio vacío o inválido");
             return;
         }
 
         if (custodioDAO.guardar(custodio)) {
-            JOptionPane.showMessageDialog(vista, "¡Custodio guardado con éxito!");
+            JOptionPane.showMessageDialog(vista, "Custodio guardado con éxito!");
             listarCustodios();
         } else {
             JOptionPane.showMessageDialog(vista, "Error al guardar el custodio");
@@ -240,26 +279,26 @@ public class InventarioControlador implements ActionListener, CalcularMantenimie
     }
 
     public void listarCustodios() {
-        var lista = custodioDAO.obtenerTodos();
-        //vista.mostrarListaCustodios(lista);
+        vista.mostrarListaCustodios(custodioDAO.obtenerTodos());
     }
 
     public void actualizarCustodio() {
-        //var custodio = vista.obtenerDatosCustodioModificado();
-        Custodio custodio = null;
-        if (custodio != null && custodioDAO.actualizar(custodio)) {
-            JOptionPane.showMessageDialog(vista, "Custodio modificado con éxito");
-            listarCustodios();
-        } else {
-            JOptionPane.showMessageDialog(vista, "Error al modificar el custodio");
+        Custodio custodio = vista.obtenerDatosCustodio();
+        if (custodio != null && !vista.txtIdCustodio.getText().trim().isEmpty()) {
+            custodio.setIdCustodio(Integer.parseInt(vista.txtIdCustodio.getText().trim()));
+            if (custodioDAO.actualizar(custodio)) {
+                JOptionPane.showMessageDialog(vista, "Custodio modificado con éxito");
+                listarCustodios();
+                return;
+            }
         }
+        JOptionPane.showMessageDialog(vista, "Error al modificar el custodio");
     }
 
-    public void eliminarCustodio() {
-        //String idSeleccionado = vista.obtenerIdCustodioSeleccionado();
-        String idSeleccionado = null;
-        if (idSeleccionado != null) {
-            int id = Integer.parseInt(idSeleccionado);
+    public void eliminarCustodio() {        
+        String idText = vista.txtIdCustodio.getText().trim();
+        if (!idText.isEmpty()) {
+            int id = Integer.parseInt(idText);
             if (custodioDAO.eliminar(id)) {
                 JOptionPane.showMessageDialog(vista, "Custodio eliminado");
                 listarCustodios();
@@ -288,13 +327,13 @@ public class InventarioControlador implements ActionListener, CalcularMantenimie
             for (Activo activo : activoDAO.obtenerTodos()) {
                 // Cálculo polimórfico según el tipo de activo
                 if (activo instanceof Hardware hw) {
-                    // Ejemplo: 5% del valor de adquisición por año de uso
+                    // 5% del valor de adquisición por año de uso
                     costoPreventivoEstimado += (hw.getCostoAdquicicion() * 0.05) * hw.getAnniosUso();
                 } else if (activo instanceof Periferico p) {
-                    // Ejemplo: tarifa fija de $10 anuales por desgaste
+                    // Tarifa fija de $10 anuales por desgaste
                     costoPreventivoEstimado += 10.0 * p.getAnniosUso();
                 } else if (activo instanceof Licencia lic) {
-                    // El costo preventivo/mantenimiento de un software es su renovación
+                    // Costo preventivo/mantenimiento de un software es su renovación
                     costoPreventivoEstimado += lic.getCostoRenovacion();
                 } 
             }
