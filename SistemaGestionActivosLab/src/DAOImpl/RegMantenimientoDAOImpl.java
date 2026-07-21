@@ -138,29 +138,29 @@ public class RegMantenimientoDAOImpl implements RegMantenimientoDAO {
     // Auxiliar para parsear las fechas y construir el objeto con su constructor
     private RegMantenimiento mapearMantenimiento(ResultSet rs) {
         try {
-            int id = rs.getInt("idMantenimiento");
-            String detalles = rs.getString("detallesMantenimiento");
-            
-            String fInicioStr = rs.getString("fechaInicio");
-            String fFinStr = rs.getString("fechaFin");
-            java.util.Date fInicio = fInicioStr != null ? dateFormat.parse(fInicioStr) : null;
-            java.util.Date fFin = fFinStr != null ? dateFormat.parse(fFinStr) : null;
+        int id = rs.getInt("idMantenimiento");
+        String detalles = rs.getString("detallesMantenimiento");
+        
+        String fInicioStr = rs.getString("fechaInicio");
+        String fFinStr = rs.getString("fechaFin");
+        java.util.Date fInicio = fInicioStr != null ? dateFormat.parse(fInicioStr) : null;
+        java.util.Date fFin = fFinStr != null ? dateFormat.parse(fFinStr) : null;
 
-            double costo = rs.getDouble("costoMantenimiento");
+        double costo = rs.getDouble("costoMantenimiento");
 
-            // Se instancian las referencias básicas por ID para cumplir el constructor
-            int idActivo = rs.getInt("id_activo");
-            int idUsuario = rs.getInt("id_usuario");
+        int idActivo = rs.getInt("id_activo");
+        int idUsuario = rs.getInt("id_usuario");
 
-            Modelo.Activo activoDummy = null; // Si requieres el objeto completo, puedes usar ActivoDAO
-            Modelo.Usuario usuarioDummy = new Modelo.Usuario(idUsuario);
+        // Instanciación dummy para evitar NullPointerException en la Vista
+        Modelo.Activo activoDummy = new Modelo.Hardware(0, idActivo, "Activo #" + idActivo, "", "Hardware", 0.0, "", null);
+        Modelo.Usuario usuarioDummy = new Modelo.Usuario(idUsuario, null);
 
-            RegMantenimiento reg = new RegMantenimiento(id, detalles, fInicio, fFin, activoDummy, usuarioDummy);
-            reg.setCostoMantenimiento(costo);
-            return reg;
-        } catch (Exception e) {
-            e.printStackTrace();
-            return null;
-        }
+        RegMantenimiento reg = new RegMantenimiento(id, detalles, fInicio, fFin, activoDummy, usuarioDummy);
+        reg.setCostoMantenimiento(costo);
+        return reg;
+    } catch (Exception e) {
+        e.printStackTrace();
+        return null;
+    }
     }
 }

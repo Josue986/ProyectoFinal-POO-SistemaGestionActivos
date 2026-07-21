@@ -33,9 +33,9 @@ public class InventarioControlador implements ActionListener, CalcularMantenimie
         // avisen a esta clase (el controlador)
         
         // Activos
-        this.vista.btnGuardar.addActionListener(this);
+        this.vista.btnGuardarActivo.addActionListener(this);
         this.vista.btnActualizarActivo.addActionListener(this);
-        this.vista.btnEliminar.addActionListener(this);
+        this.vista.btnEliminarActivo.addActionListener(this);
         
         // Custodios
         this.vista.btnGuardarCustodio.addActionListener(this);
@@ -119,7 +119,7 @@ public class InventarioControlador implements ActionListener, CalcularMantenimie
     }
 
     public void eliminarActivo() {
-        String idSeleccionado = vista.obtenerIdSeleccionado();
+        String idSeleccionado = vista.obtenerIdActivoSeleccionado();
         if (idSeleccionado != null) {
             int id = Integer.parseInt(idSeleccionado);
             if (activoDAO.eliminar(id)) {
@@ -181,8 +181,8 @@ public class InventarioControlador implements ActionListener, CalcularMantenimie
     }
 
     public void eliminarRegMantenimiento() {
-        String idText = vista.txtIdMantenimiento.getText().trim();
-        if (!idText.isEmpty()) {
+        String idText = vista.obtenerIdMantenimientoSeleccionado();
+        if (idText != null) {
             int id = Integer.parseInt(idText);
             if (regMantenimientoDAO.eliminar(id)) {
                 JOptionPane.showMessageDialog(vista, "Registro de mantenimiento eliminado");
@@ -191,7 +191,7 @@ public class InventarioControlador implements ActionListener, CalcularMantenimie
                 JOptionPane.showMessageDialog(vista, "Error al eliminar el mantenimiento");
             }
         } else {
-            JOptionPane.showMessageDialog(vista, "Ingrese el ID del mantenimiento a eliminar");
+            JOptionPane.showMessageDialog(vista, "eleccione un mantenimiento de la tabla para eliminar");
         }
     }
 
@@ -239,8 +239,8 @@ public class InventarioControlador implements ActionListener, CalcularMantenimie
     }
 
     public void eliminarUsuario() {
-        String idText = vista.txtIdUsuario.getText().trim();
-        if (!idText.isEmpty()) {
+        String idText = vista.obtenerIdUsuarioSeleccionado();
+        if (idText != null) {
             int id = Integer.parseInt(idText);
             if (usuarioDAO.eliminar(id)) {
                 JOptionPane.showMessageDialog(vista, "Usuario eliminado");
@@ -296,8 +296,8 @@ public class InventarioControlador implements ActionListener, CalcularMantenimie
     }
 
     public void eliminarCustodio() {        
-        String idText = vista.txtIdCustodio.getText().trim();
-        if (!idText.isEmpty()) {
+        String idText = vista.obtenerIdCustodioSeleccionado();
+        if (idText != null) {
             int id = Integer.parseInt(idText);
             if (custodioDAO.eliminar(id)) {
                 JOptionPane.showMessageDialog(vista, "Custodio eliminado");
