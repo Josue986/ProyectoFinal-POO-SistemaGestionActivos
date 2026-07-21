@@ -12,8 +12,9 @@ public class Hardware extends Activo {
     private int anniosUso;
     private double costoMantenimiento;
 
-    public Hardware(int anniosUso, int idActivo, String nombreActivo, String marca, String tipoActivo, String estadoActivo, Custodio custodio) {
-        super(idActivo, nombreActivo, marca, tipoActivo, estadoActivo, custodio);
+    public Hardware(int anniosUso, int idActivo, String nombreActivo, String marca, String tipoActivo, 
+            double costoAdquicicion, String estadoActivo, Custodio custodio) {
+        super(idActivo, nombreActivo, marca, tipoActivo, costoAdquicicion, estadoActivo, custodio);
         this.anniosUso = anniosUso;
         this.costoMantenimiento = 0;
     }

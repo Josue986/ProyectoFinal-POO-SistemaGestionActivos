@@ -13,8 +13,9 @@ public class Periferico extends Activo {
     private String tipoConexion;
     private double costoMantenimiento;
 
-    public Periferico(int anniosUso, String tipoConexion, int idActivo, String nombreActivo, String marca, String tipoActivo, String estadoActivo, Custodio custodio) {
-        super(idActivo, nombreActivo, marca, tipoActivo, estadoActivo, custodio);
+    public Periferico(int anniosUso, String tipoConexion, int idActivo, String nombreActivo, 
+            String marca, String tipoActivo, double costoAdquicicion, String estadoActivo, Custodio custodio) {
+        super(idActivo, nombreActivo, marca, tipoActivo, costoAdquicicion, estadoActivo, custodio);
         this.anniosUso = anniosUso;
         this.tipoConexion = tipoConexion;
         this.costoMantenimiento = 0;

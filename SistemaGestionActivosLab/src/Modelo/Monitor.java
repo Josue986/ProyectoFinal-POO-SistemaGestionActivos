@@ -12,8 +12,10 @@ public class Monitor extends Periferico {
     private String resolucion;
     private String tasaDeRefresco;
 
-    public Monitor(String resolucion, String tasaDeRefresco, int anniosUso, String tipoConexion, int idActivo, String nombreActivo, String marca, String tipoActivo, double costoMantenimiento, String estadoActivo, Custodio custodio) {
-        super(anniosUso, tipoConexion, idActivo, nombreActivo, marca, tipoActivo, estadoActivo, custodio);
+    public Monitor(String resolucion, String tasaDeRefresco, int anniosUso, 
+            String tipoConexion, int idActivo, String nombreActivo, String marca, 
+            String tipoActivo, double costoMantenimiento, String estadoActivo, double costoAdquicicion, Custodio custodio) {
+        super(anniosUso, tipoConexion, idActivo, nombreActivo, marca, tipoActivo, costoAdquicicion, estadoActivo, custodio);
         this.resolucion = resolucion;
         this.tasaDeRefresco = tasaDeRefresco;
     }

@@ -17,7 +17,7 @@ public abstract class Activo {
     public Activo() {
     }
 
-    public Activo(int idActivo, String nombreActivo, String marca, String tipoActivo, String estadoActivo, Custodio custodio) {
+    public Activo(int idActivo, String nombreActivo, String marca, String tipoActivo, double costoAdquicicion, String estadoActivo, Custodio custodio) {
         this.idActivo = idActivo;
         this.nombreActivo = nombreActivo;
         this.marca = marca;
