@@ -10,7 +10,7 @@ import java.util.Date;
  * @author jotue
  */
 public class RegMantenimiento {
-    private int dpi;
+    private int idMantenimiento;
     private String detallesMantenimiento;
     private Date fechaInicio;
     private Date fechaFin;
@@ -18,8 +18,8 @@ public class RegMantenimiento {
     private Activo activo;
     private Usuario usuario;
 
-    public RegMantenimiento(int dpi, String detallesMantenimiento, Date fechaInicio, Date fechaFin, Activo activo, Usuario usuario) {
-        this.dpi = dpi;
+    public RegMantenimiento(int idMantenimiento, String detallesMantenimiento, Date fechaInicio, Date fechaFin, Activo activo, Usuario usuario) {
+        this.idMantenimiento = idMantenimiento;
         this.detallesMantenimiento = detallesMantenimiento;
         this.fechaInicio = fechaInicio;
         this.fechaFin = fechaFin;
@@ -28,12 +28,12 @@ public class RegMantenimiento {
         this.usuario = usuario;
     }
 
-    public int getDpi() {
-        return dpi;
+    public int getIdMantenimiento() {
+        return idMantenimiento;
     }
 
-    public void setDpi(int dpi) {
-        this.dpi = dpi;
+    public void setIdMantenimiento(int idMantenimiento) {
+        this.idMantenimiento = idMantenimiento;
     }
 
     public String getDetallesMantenimiento() {

@@ -5,6 +5,8 @@ import javax.swing.table.DefaultTableModel;
 import Modelo.*;
 import java.awt.*;
 import java.util.List;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 // Solo una clase, extendiendo JFrame directamente
 public class Vista extends JFrame {
@@ -28,7 +30,7 @@ public class Vista extends JFrame {
     private DefaultTableModel modeloTablaUsuarios;
 
     //--- Pestaña 4: MANTENIMIENTOS ---
-    public JTextField txtDpiMantenimiento, txtDetallesMantenimiento, txtFechaInicioMantenimiento, txtFechaFinMantenimiento, txtIdActivoMantenimiento, txtIdUsuarioMantenimiento;
+    public JTextField txtIdMantenimiento, txtDetallesMantenimiento, txtFechaInicioMantenimiento, txtFechaFinMantenimiento, txtCostoMantenimiento, txtIdActivoMantenimiento, txtIdUsuarioMantenimiento;
     public JButton btnGuardarMantenimiento, btnActualizarMantenimiento, btnEliminarMantenimiento, btnFiltrarMantenimientoActivo;
     private JTable tablaMantenimientos;
     private DefaultTableModel modeloTablaMantenimientos;
@@ -205,25 +207,28 @@ public class Vista extends JFrame {
     private JPanel crearPanelMantenimientos() {
         JPanel panel = new JPanel(new BorderLayout());
 
-        JPanel panelForm = new JPanel(new GridLayout(6, 2, 5, 5));
+        JPanel panelForm = new JPanel(new GridLayout(7, 2, 5, 5));
         panelForm.setBorder(BorderFactory.createTitledBorder("Registro de Mantenimiento"));
 
-        txtDpiMantenimiento = new JTextField();
-        txtDpiMantenimiento.setEditable(false);
+        txtIdMantenimiento = new JTextField();
+        txtIdMantenimiento.setEditable(false);
         txtDetallesMantenimiento = new JTextField();
         txtFechaInicioMantenimiento = new JTextField();
         txtFechaFinMantenimiento = new JTextField();
+        txtCostoMantenimiento = new JTextField();
         txtIdActivoMantenimiento = new JTextField();
         txtIdUsuarioMantenimiento = new JTextField();
 
-        panelForm.add(new JLabel("DPI / Código:"));
-        panelForm.add(txtDpiMantenimiento);
+        panelForm.add(new JLabel("ID Mantenimiento:"));
+        panelForm.add(txtIdMantenimiento);
         panelForm.add(new JLabel("Detalles:"));
         panelForm.add(txtDetallesMantenimiento);
         panelForm.add(new JLabel("Fecha Inicio (YYYY-MM-DD):"));
         panelForm.add(txtFechaInicioMantenimiento);
         panelForm.add(new JLabel("Fecha Fin (YYYY-MM-DD):"));
         panelForm.add(txtFechaFinMantenimiento);
+        panelForm.add(new JLabel("Costo ($):"));
+        panelForm.add(txtCostoMantenimiento);
         panelForm.add(new JLabel("ID Activo:"));
         panelForm.add(txtIdActivoMantenimiento);
         panelForm.add(new JLabel("ID Usuario:"));
@@ -245,7 +250,7 @@ public class Vista extends JFrame {
         panelSuperior.add(panelBotones, BorderLayout.SOUTH);
 
         modeloTablaMantenimientos = new DefaultTableModel(
-            new String[]{"DPI", "Detalles", "Fecha Inicio", "Fecha Fin", "Costo", "Activo", "Usuario"}, 0
+            new String[]{"ID", "Detalles", "Fecha Inicio", "Fecha Fin", "Costo", "Activo", "Usuario"}, 0
         );
         tablaMantenimientos = new JTable(modeloTablaMantenimientos);
 
@@ -264,11 +269,11 @@ public class Vista extends JFrame {
             for (Activo a : activos) {
                 String nombreCustodio = (a.getCustodio() != null) ? a.getCustodio().getNombre() + " " + a.getCustodio().getApellido() : "Sin Custodio";
                 modeloTablaActivos.addRow(new Object[]{
-                    a.getIdActivo(),
+                    a.getIdActivo(), // Clave primaria
                     a.getNombreActivo(),
                     a.getMarca(),
                     a.getTipoActivo(),
-                    a.getCostoAdquicicion(), // Atributo exacto de tu modelo Activo
+                    a.getCostoAdquicicion(),
                     a.getEstadoActivo(),
                     nombreCustodio
                 });
@@ -310,7 +315,7 @@ public class Vista extends JFrame {
         if (custodios != null) {
             for (Custodio c : custodios) {
                 modeloTablaCustodios.addRow(new Object[]{
-                    c.getIdCustodio(),
+                    c.getIdCustodio(), // Clave primaria
                     c.getCedula(),
                     c.getNombre(),
                     c.getApellido(),
@@ -322,6 +327,7 @@ public class Vista extends JFrame {
     
     public Custodio obtenerDatosCustodio() {
         try {
+            String idCustodio = txtIdCustodio.getText().trim(); // Clave primaria
             String cedula = txtCedulaCustodio.getText().trim();
             String nombre = txtNombreCustodio.getText().trim();
             String apellido = txtApellidoCustodio.getText().trim();
@@ -344,8 +350,8 @@ public class Vista extends JFrame {
                 int idCustodio = (u.getCustodio() != null) ? u.getCustodio().getIdCustodio() : 0;
                 
                 modeloTablaUsuarios.addRow(new Object[]{
-                    u.getIdUsuario(),
-                    idCustodio,
+                    u.getIdUsuario(), // Clave primaria
+                    idCustodio, // Clave foranea
                     nombreCustodio
                 });
             }
@@ -373,7 +379,7 @@ public class Vista extends JFrame {
                 String idUsuario = (rm.getUsuario() != null) ? String.valueOf(rm.getUsuario().getIdUsuario()) : "N/A";
 
                 modeloTablaMantenimientos.addRow(new Object[]{
-                    rm.getDpi(), // Clave primaria según tu clase RegMantenimiento
+                    rm.getIdMantenimiento(), // Clave primaria
                     rm.getDetallesMantenimiento(),
                     rm.getFechaInicio(),
                     rm.getFechaFin(),
@@ -382,6 +388,47 @@ public class Vista extends JFrame {
                     idUsuario
                 });
             }
+        }
+    }
+    
+    public RegMantenimiento obtenerDatosMantenimiento() {
+        try {
+            String detalles = txtDetallesMantenimiento.getText().trim();
+            String fInicioStr = txtFechaInicioMantenimiento.getText().trim();
+            String fFinStr = txtFechaFinMantenimiento.getText().trim();      
+            
+            // Validación de campos vacíos obligatorios
+        if (detalles.isEmpty() || fInicioStr.isEmpty() || 
+            txtIdActivoMantenimiento.getText().trim().isEmpty() || 
+            txtIdUsuarioMantenimiento.getText().trim().isEmpty()) {
+            return null;
+        }
+
+        double costo = txtCostoMantenimiento.getText().trim().isEmpty() 
+            ? 0.0 
+            : Double.parseDouble(txtCostoMantenimiento.getText().trim());
+            
+            // Obtener IDs asociados
+            int idActivo = Integer.parseInt(txtIdActivoMantenimiento.getText().trim());
+            Activo activoAux = new Hardware(idActivo, 0, "", "", "", 0.0, "", null);
+            activoAux.setIdActivo(idActivo);
+
+            int idUsuario = Integer.parseInt(txtIdUsuarioMantenimiento.getText().trim());
+            Usuario usuarioAux = new Usuario(idUsuario, null);
+
+            if (detalles.isEmpty() || fInicioStr.isEmpty()) return null;
+
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+            Date fInicio = sdf.parse(fInicioStr);
+            Date fFin = fFinStr.isEmpty() ? null : sdf.parse(fFinStr);
+            
+            // Construcción y retorno del objeto
+            RegMantenimiento reg = new RegMantenimiento(0, detalles, fInicio, fFin, activoAux, usuarioAux);
+            reg.setCostoMantenimiento(costo);
+            return reg;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
         }
     }
 }
