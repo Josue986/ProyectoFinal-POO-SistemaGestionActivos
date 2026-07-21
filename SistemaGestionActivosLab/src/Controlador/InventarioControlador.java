@@ -115,6 +115,7 @@ public class InventarioControlador implements ActionListener, CalcularMantenimie
         var lista = regMantenimientoDAO.obtenerTodos();
         //vista.mostrarListaMantenimientos(lista); // Ajusta al método de tu Vista
     }
+
     
     public void listarRegMantenimientosPorActivo() {
         // TODO: String idSeleccionado = vista.obtenerIdSeleccionado();
@@ -274,19 +275,30 @@ public class InventarioControlador implements ActionListener, CalcularMantenimie
         //var custodio = vista.getCustodioSeleccionado();
         Custodio custodio = null;
         if (custodio != null) {
-           //vista.cargarFormularioCustodio(custodio);
+            //vista.cargarFormularioCustodio(custodio);
         }
     }
 
     // --- IMPLEMENTACIÓN DE LA INTERFAZ DE CÁLCULO ---
     @Override
     public double calcularCostoMantenimiento() {
-        // Aquí interactúas con regMantenimientoDAO para sumar los costos de la BD
-        return 0.0;
+        double costo = 0.0;
+        if (regMantenimientoDAO != null && regMantenimientoDAO.obtenerTodos() != null) {
+            for (RegMantenimiento m : regMantenimientoDAO.obtenerTodos()) {
+                costo += m.getCostoMantenimiento(); // Ajusta getCostoMantenimiento() al nombre exacto de tu getter
+            }
+        }
+        return costo;
     }
-    
+
     @Override
-    public double calcularCostoMantenimientoTotal() {
-        return 0.0;
+    public double calcularMantenimientoTotal() {
+        double costoTotal = 0.0;
+        if (regMantenimientoDAO != null && regMantenimientoDAO.obtenerTodos() != null) {
+            for (RegMantenimiento m : regMantenimientoDAO.obtenerTodos()) {
+                costoTotal += m.getCostoMantenimiento();
+            }
+          }
+          return costoTotal;  
     }
 }
