@@ -317,7 +317,7 @@ public class Vista extends JFrame {
                     c.getRol()
                 });
             }
-        }
+         }
     }
     
     public Custodio obtenerDatosCustodio() {
