@@ -282,13 +282,24 @@ public class InventarioControlador implements ActionListener, CalcularMantenimie
     // --- IMPLEMENTACIÓN DE LA INTERFAZ DE CÁLCULO ---
     @Override
     public double calcularCostoMantenimiento() {
-        double costo = 0.0;
-        if (regMantenimientoDAO != null && regMantenimientoDAO.obtenerTodos() != null) {
-            for (RegMantenimiento m : regMantenimientoDAO.obtenerTodos()) {
-                costo += m.getCostoMantenimiento(); 
+        double costoPreventivoEstimado = 0.0;
+        
+        if (activoDAO != null && activoDAO.obtenerTodos() != null) {
+            for (Activo activo : activoDAO.obtenerTodos()) {
+                // Cálculo polimórfico según el tipo de activo
+                if (activo instanceof Hardware hw) {
+                    // Ejemplo: 5% del valor de adquisición por año de uso
+                    costoPreventivoEstimado += (hw.getCostoAdquicicion() * 0.05) * hw.getAnniosUso();
+                } else if (activo instanceof Periferico p) {
+                    // Ejemplo: tarifa fija de $10 anuales por desgaste
+                    costoPreventivoEstimado += 10.0 * p.getAnniosUso();
+                } else if (activo instanceof Licencia lic) {
+                    // El costo preventivo/mantenimiento de un software es su renovación
+                    costoPreventivoEstimado += lic.getCostoRenovacion();
+                } 
             }
         }
-        return costo;
+        return costoPreventivoEstimado;
     }
 
     @Override
