@@ -38,22 +38,59 @@ public class ConexionSQLite {
                 + "FOREIGN KEY(id_custodio) REFERENCES custodios(idCustodio)"
                 + ");";
         
+        // TABLA BASE: ACTIVOS (Campos comunes de la clase abstracta Activo)
         String tablaActivos = "CREATE TABLE IF NOT EXISTS activos ("
                 + "idActivo INTEGER PRIMARY KEY AUTOINCREMENT, "
                 + "nombreActivo TEXT NOT NULL, "
+                + "marca TEXT, "
                 + "tipoActivo TEXT NOT NULL, "
-                + "costoAdquisicion DECIMAL(8,2), "
+                + "costoAdquisicion REAL, "
                 + "estadoActivo TEXT NOT NULL, "
                 + "id_custodio INTEGER, "
                 + "FOREIGN KEY(id_custodio) REFERENCES custodios(idCustodio) "
                 + ");";
-
+        
+        // --- TABLAS HIJAS (Especializaciones del modelo) ---
+        String tablaCpus = "CREATE TABLE IF NOT EXISTS cpus ("
+                + "idActivo INTEGER PRIMARY KEY, "
+                + "anniosUso INTEGER, "
+                + "procesador TEXT, "
+                + "memoriaRAM TEXT, "
+                + "almacenamiento TEXT, "
+                + "FOREIGN KEY(idActivo) REFERENCES activos(idActivo) ON DELETE CASCADE"
+                + ");";
+        
+        String tablaMonitores = "CREATE TABLE IF NOT EXISTS monitores ("
+                + "idActivo INTEGER PRIMARY KEY, "
+                + "anniosUso INTEGER, "
+                + "tipoConexion TEXT, "
+                + "resolucion TEXT, "
+                + "tasaRefresco TEXT, "
+                + "FOREIGN KEY(idActivo) REFERENCES activos(idActivo) ON DELETE CASCADE"
+                + ");";
+        
+        String tablaMouses = "CREATE TABLE IF NOT EXISTS mouses ("
+                + "idActivo INTEGER PRIMARY KEY, "
+                + "anniosUso INTEGER, "
+                + "tipoConexion TEXT, "
+                + "dpi TEXT, "
+                + "FOREIGN KEY(idActivo) REFERENCES activos(idActivo) ON DELETE CASCADE"
+                + ");";
+        
+        String tablaLicencias = "CREATE TABLE IF NOT EXISTS licencias ("
+                + "idActivo INTEGER PRIMARY KEY, "
+                + "fechaExpiracion TEXT, "
+                + "costoRenovacion REAL, "
+                + "FOREIGN KEY(idActivo) REFERENCES activos(idActivo) ON DELETE CASCADE"
+                + ");";
+        
+        
         String tablaMantenimientos = "CREATE TABLE IF NOT EXISTS mantenimientos ("
                 + "idMantenimiento INTEGER PRIMARY KEY AUTOINCREMENT, "
-                + "detallesMantenimiento TEXT NOT NULL UNIQUE, "
+                + "detallesMantenimiento TEXT NOT NULL, "
                 + "fechaInicio TEXT NOT NULL, "
                 + "fechaFin TEXT, "
-                + "costoMantenimiento DECIMAL(8,2), "
+                + "costoMantenimiento REAL, "
                 + "id_activo INTEGER NOT NULL, "
                 + "id_usuario INTEGER NOT NULL, "
                 + "FOREIGN KEY(id_activo) REFERENCES activos(idActivo), "
@@ -61,10 +98,16 @@ public class ConexionSQLite {
                 + ");";
 
         try (Connection conn = conectar(); Statement stmt = conn.createStatement()) {
-
+            // Habilitar el soporte de Claves Foráneas en SQLite para ON DELETE CASCADE
+            stmt.execute("PRAGMA foreign_keys = ON;");
+            
             stmt.execute(tablaCustodios);
             stmt.execute(tablaUsuarios);
             stmt.execute(tablaActivos);
+            stmt.execute(tablaCpus);
+            stmt.execute(tablaMonitores);
+            stmt.execute(tablaMouses);
+            stmt.execute(tablaLicencias);
             stmt.execute(tablaMantenimientos);
             System.out.println("[BD] Estructura de tablas verificada/creada con éxito.");
 
