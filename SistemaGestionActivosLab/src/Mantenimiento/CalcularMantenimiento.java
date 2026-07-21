@@ -1,8 +1,5 @@
 package Mantenimiento;
-/**
- *
- * @author jotue
- */
+
 public interface CalcularMantenimiento {
     /**
      * Calcula el costo total de mantenimiento.
