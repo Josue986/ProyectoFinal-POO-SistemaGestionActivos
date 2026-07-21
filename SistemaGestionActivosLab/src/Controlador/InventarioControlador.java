@@ -285,14 +285,14 @@ public class InventarioControlador implements ActionListener, CalcularMantenimie
         double costo = 0.0;
         if (regMantenimientoDAO != null && regMantenimientoDAO.obtenerTodos() != null) {
             for (RegMantenimiento m : regMantenimientoDAO.obtenerTodos()) {
-                costo += m.getCostoMantenimiento(); // Ajusta getCostoMantenimiento() al nombre exacto de tu getter
+                costo += m.getCostoMantenimiento(); 
             }
         }
         return costo;
     }
 
     @Override
-    public double calcularMantenimientoTotal() {
+    public double calcularCostoMantenimientoTotal() {
         double costoTotal = 0.0;
         if (regMantenimientoDAO != null && regMantenimientoDAO.obtenerTodos() != null) {
             for (RegMantenimiento m : regMantenimientoDAO.obtenerTodos()) {
