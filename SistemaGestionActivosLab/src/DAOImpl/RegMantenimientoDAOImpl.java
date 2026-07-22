@@ -94,9 +94,17 @@ public class RegMantenimientoDAOImpl implements RegMantenimientoDAO {
     @Override
     public List<RegMantenimiento> obtenerTodos() {
         List<RegMantenimiento> lista = new ArrayList<>();
-        String sql = "SELECT m.*, a.nombreActivo " +
+        String sql = "SELECT m.*, a.nombreActivo, a.marca, a.tipoActivo, a.costoAdquisicion, a.estadoActivo, " +
+             "c.procesador, c.memoriaRAM, c.almacenamiento, c.anniosUso AS anniosCpu, " +
+             "mo.resolucion, mo.tasaRefresco, mo.tipoConexion AS connMon, mo.anniosUso AS anniosMon, " +
+             "ms.dpi, ms.tipoConexion AS connMouse, ms.anniosUso AS anniosMouse, " +
+             "l.fechaExpiracion, l.costoRenovacion " +
              "FROM mantenimientos m " +
-             "LEFT JOIN activos a ON m.id_activo = a.idActivo";
+             "LEFT JOIN activos a ON m.id_activo = a.idActivo " +
+             "LEFT JOIN cpus c ON a.idActivo = c.idActivo " +
+             "LEFT JOIN monitores mo ON a.idActivo = mo.idActivo " +
+             "LEFT JOIN mouses ms ON a.idActivo = ms.idActivo " +
+             "LEFT JOIN licencias l ON a.idActivo = l.idActivo";
 
         try (Connection conn = ConexionSQLite.conectar();
              Statement stmt = conn.createStatement();
@@ -117,10 +125,18 @@ public class RegMantenimientoDAOImpl implements RegMantenimientoDAO {
     @Override
     public List<RegMantenimiento> obtenerRegMantenimientosActivo(int idActivo) {
         List<RegMantenimiento> lista = new ArrayList<>();
-        String sql = "SELECT m.*, a.nombreActivo " +
-                     "FROM mantenimientos m " +
-                     "LEFT JOIN activos a ON m.id_activo = a.idActivo " +
-                     "WHERE m.id_activo = ?";
+        String sql = "SELECT m.*, a.nombreActivo, a.marca, a.tipoActivo, a.costoAdquisicion, a.estadoActivo, " +
+                 "c.procesador, c.memoriaRAM, c.almacenamiento, c.anniosUso AS anniosCpu, " +
+                 "mo.resolucion, mo.tasaRefresco, mo.tipoConexion AS connMon, mo.anniosUso AS anniosMon, " +
+                 "ms.dpi, ms.tipoConexion AS connMouse, ms.anniosUso AS anniosMouse, " +
+                 "l.fechaExpiracion, l.costoRenovacion " +
+                 "FROM mantenimientos m " +
+                 "LEFT JOIN activos a ON m.id_activo = a.idActivo " +
+                 "LEFT JOIN cpus c ON a.idActivo = c.idActivo " +
+                 "LEFT JOIN monitores mo ON a.idActivo = mo.idActivo " +
+                 "LEFT JOIN mouses ms ON a.idActivo = ms.idActivo " +
+                 "LEFT JOIN licencias l ON a.idActivo = l.idActivo " +
+                 "WHERE m.id_activo = ?";
 
         try (Connection conn = ConexionSQLite.conectar();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -143,43 +159,61 @@ public class RegMantenimientoDAOImpl implements RegMantenimientoDAO {
     // Auxiliar para parsear las fechas y construir el objeto con su constructor
     private RegMantenimiento mapearMantenimiento(ResultSet rs) {
         try {
-        int id = rs.getInt("idMantenimiento");
-        String detalles = rs.getString("detallesMantenimiento");
+            int id = rs.getInt("idMantenimiento");
+            String detalles = rs.getString("detallesMantenimiento");
         
-        String fInicioStr = rs.getString("fechaInicio");
-        String fFinStr = rs.getString("fechaFin");
-        java.util.Date fInicio = fInicioStr != null ? dateFormat.parse(fInicioStr) : null;
-        java.util.Date fFin = fFinStr != null ? dateFormat.parse(fFinStr) : null;
+            String fInicioStr = rs.getString("fechaInicio");
+            String fFinStr = rs.getString("fechaFin");
+            java.util.Date fInicio = (fInicioStr != null && !fInicioStr.trim().isEmpty()) ? dateFormat.parse(fInicioStr) : null;
+            java.util.Date fFin = (fFinStr != null && !fFinStr.trim().isEmpty()) ? dateFormat.parse(fFinStr) : null;
 
-        double costo = rs.getDouble("costoMantenimiento");
-
-        int idActivo = rs.getInt("id_activo");
-        int idUsuario = rs.getInt("id_usuario");
+            double costo = rs.getDouble("costoMantenimiento");
+            int idActivo = rs.getInt("id_activo");
+            int idUsuario = rs.getInt("id_usuario");
         
-        String nombreActivo = null;
-        try {
-            nombreActivo = rs.getString("nombreActivo");
-        } catch (SQLException ignored) {
-            // Si la columna no estaba presente en la consulta SQL
+            // Atributos base de Activo
+            String nombreActivo = rs.getString("nombreActivo");
+            if (nombreActivo == null) nombreActivo = "Activo #" + idActivo;
+        
+            String marca = rs.getString("marca") != null ? rs.getString("marca") : "";
+            String tipoActivo = rs.getString("tipoActivo") != null ? rs.getString("tipoActivo") : "Hardware";
+            double costoAdq = rs.getDouble("costoAdquisicion");
+            String estado = rs.getString("estadoActivo") != null ? rs.getString("estadoActivo") : "Disponible";
+
+            Activo activo = null;
+        
+            if (rs.getString("dpi") != null) {
+                // Es un Mouse
+                activo = new Mouse(rs.getString("dpi"), rs.getInt("anniosMouse"), rs.getString("connMouse"), 
+                                   idActivo, nombreActivo, marca, tipoActivo, costoAdq, estado, null);
+            } else if (rs.getString("resolucion") != null) {
+                // Es un Monitor
+                activo = new Monitor(rs.getString("resolucion"), rs.getString("tasaRefresco"), rs.getInt("anniosMon"), 
+                     rs.getString("connMon"), idActivo, nombreActivo, marca, tipoActivo, 
+                     0.0, estado, costoAdq, null);
+            } else if (rs.getString("procesador") != null) {
+                // Es una CPU
+                activo = new Cpu(rs.getString("procesador"), rs.getString("memoriaRAM"), rs.getString("almacenamiento"),
+                             rs.getInt("anniosCpu"), idActivo, nombreActivo, marca, tipoActivo, costoAdq, estado, null);
+            } else if (rs.getString("fechaExpiracion") != null) {
+                // Es una Licencia
+                String fExpStr = rs.getString("fechaExpiracion");
+                java.util.Date fExp = (fExpStr != null && !fExpStr.trim().isEmpty()) ? dateFormat.parse(fExpStr) : null;
+                activo = new Licencia(fExp, rs.getDouble("costoRenovacion"), idActivo, 
+                                     nombreActivo, marca, tipoActivo, 0.0, estado, costoAdq, null);
+            } else {
+                // Respaldo genérico en caso de ser otro Hardware/Periférico
+                activo = new Hardware(0, idActivo, nombreActivo, marca, tipoActivo, costoAdq, estado, null);
+            }
+
+            Usuario usuarioDummy = new Usuario(idUsuario, null);
+            RegMantenimiento reg = new RegMantenimiento(id, detalles, fInicio, fFin, activo, usuarioDummy);
+            reg.setCostoMantenimiento(costo);
+            return reg;
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
         }
-        
-        if (nombreActivo == null || nombreActivo.trim().isEmpty()) {
-            nombreActivo = "Activo #" + idActivo;
-        }
-
-        // Instanciación dummy para evitar NullPointerException en la Vista
-        Custodio custodioDummy = null;
-        Modelo.Activo activoDummy = new Modelo.Hardware(
-            0, idActivo, nombreActivo, "", "Hardware", 0.0, "Disponible", custodioDummy //[cite: 20]
-        );
-        Modelo.Usuario usuarioDummy = new Modelo.Usuario(idUsuario, null);
-
-        RegMantenimiento reg = new RegMantenimiento(id, detalles, fInicio, fFin, activoDummy, usuarioDummy);
-        reg.setCostoMantenimiento(costo);
-        return reg;
-    } catch (Exception e) {
-        e.printStackTrace();
-        return null;
-    }
     }
 }
