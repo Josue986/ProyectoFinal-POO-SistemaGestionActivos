@@ -18,12 +18,15 @@ public class RegMantenimiento {
     private Activo activo;
     private Usuario usuario;
 
-    public RegMantenimiento(int idMantenimiento, String detallesMantenimiento, Date fechaInicio, Date fechaFin, Activo activo, Usuario usuario) {
+    public RegMantenimiento() {
+    }
+
+    public RegMantenimiento(int idMantenimiento, String detallesMantenimiento, Date fechaInicio, Date fechaFin, double costoMantenimiento, Activo activo, Usuario usuario) {
         this.idMantenimiento = idMantenimiento;
         this.detallesMantenimiento = detallesMantenimiento;
         this.fechaInicio = fechaInicio;
         this.fechaFin = fechaFin;
-        this.costoMantenimiento = 0;
+        this.costoMantenimiento = costoMantenimiento;
         this.activo = activo;
         this.usuario = usuario;
     }

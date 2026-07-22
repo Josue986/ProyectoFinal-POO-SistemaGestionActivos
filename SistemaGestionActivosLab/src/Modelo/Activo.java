@@ -10,19 +10,19 @@ public abstract class Activo {
     private String nombreActivo;
     private String marca;
     private String tipoActivo;
-    private double costoAdquicicion;
+    private double costoAdquisicion;
     private String estadoActivo;
     private Custodio custodio;
 
     public Activo() {
     }
 
-    public Activo(int idActivo, String nombreActivo, String marca, String tipoActivo, double costoAdquicicion, String estadoActivo, Custodio custodio) {
+    public Activo(int idActivo, String nombreActivo, String marca, String tipoActivo, double costoAdquisicion, String estadoActivo, Custodio custodio) {
         this.idActivo = idActivo;
         this.nombreActivo = nombreActivo;
         this.marca = marca;
         this.tipoActivo = tipoActivo;
-        this.costoAdquicicion = costoAdquicicion;
+        this.costoAdquisicion = costoAdquisicion;
         this.estadoActivo = estadoActivo;
         this.custodio = custodio;
     }
@@ -59,12 +59,12 @@ public abstract class Activo {
         this.tipoActivo = tipoActivo;
     }
 
-    public double getCostoAdquicicion() {
-        return costoAdquicicion;
+    public double getCostoAdquisicion() {
+        return costoAdquisicion;
     }
 
-    public void setCostoAdquicicion(double costoAdquicicion) {
-        this.costoAdquicicion = costoAdquicicion;
+    public void setCostoAdquisicion(double costoAdquisicion) {
+        this.costoAdquisicion = costoAdquisicion;
     }
 
     public String getEstadoActivo() {

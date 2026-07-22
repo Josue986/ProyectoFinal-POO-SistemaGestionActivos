@@ -10,6 +10,8 @@ import Mantenimiento.CalcularMantenimiento; // Tu interfaz de cálculo
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import javax.swing.JOptionPane;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 
 public class InventarioControlador implements ActionListener, CalcularMantenimiento {
 
@@ -18,7 +20,7 @@ public class InventarioControlador implements ActionListener, CalcularMantenimie
     private RegMantenimientoDAO regMantenimientoDAO;
     private UsuarioDAO usuarioDAO;
     private CustodioDAO custodioDAO;
-
+    
     // El constructor une la Vista y el DAO
     public InventarioControlador(Vista vista, ActivoDAO activoDAO,
             RegMantenimientoDAO regMantenimientoDAO, UsuarioDAO usuarioDAO,
@@ -52,6 +54,35 @@ public class InventarioControlador implements ActionListener, CalcularMantenimie
         this.vista.btnActualizarMantenimiento.addActionListener(this);
         this.vista.btnEliminarMantenimiento.addActionListener(this);
         this.vista.btnFiltrarMantenimientoActivo.addActionListener(this);
+        
+        // --- LISTENERS PARA TABLAS (Autocargar al hacer clic) ---
+        this.vista.tablaActivos.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                vista.cargarFormularioActivoDesdeTabla();
+            }
+        });
+
+        this.vista.tablaCustodios.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                vista.cargarFormularioCustodioDesdeTabla();
+            }
+        });
+
+        this.vista.tablaUsuarios.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                vista.cargarFormularioUsuarioDesdeTabla();
+            }
+        });
+
+        this.vista.tablaMantenimientos.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                vista.cargarFormularioMantenimientoDesdeTabla();
+            }
+        });
         
         // Cargar listas iniciales
         listarActivos();
@@ -97,6 +128,7 @@ public class InventarioControlador implements ActionListener, CalcularMantenimie
             if (activoDAO.guardar(activo)) {
                 JOptionPane.showMessageDialog(vista, "Activo guardado con éxito!");
                 listarActivos();
+                vista.limpiarFormularioActivo();
             } else {
                 JOptionPane.showMessageDialog(vista, "Error al guardar el activo");
             }
@@ -117,6 +149,7 @@ public class InventarioControlador implements ActionListener, CalcularMantenimie
             if (activoDAO.actualizar(activo)) {
                 JOptionPane.showMessageDialog(vista, "Activo actualizado con éxito");
                 listarActivos();
+                vista.limpiarFormularioActivo();
                 return;
             }
         }
@@ -130,15 +163,13 @@ public class InventarioControlador implements ActionListener, CalcularMantenimie
             if (activoDAO.eliminar(id)) {
                 JOptionPane.showMessageDialog(vista, "Activo eliminado");
                 listarActivos();
+                vista.limpiarFormularioActivo();
             } else {
                 JOptionPane.showMessageDialog(vista, "Error al eliminar");
             }
         } else {
             JOptionPane.showMessageDialog(vista, "Seleccione un activo de la tabla");
         }
-    }
-
-    public void cargarDatosParaEditarActivo() {
     }
 
     // Métodos para Registro de Mantenimientos
@@ -152,6 +183,7 @@ public class InventarioControlador implements ActionListener, CalcularMantenimie
         if (regMantenimientoDAO.guardar(mantenimiento)) {
             JOptionPane.showMessageDialog(vista, "¡Mantenimiento registrado con éxito!");
             listarRegMantenimientos();
+            vista.limpiarFormularioMantenimiento();
         } else {
             JOptionPane.showMessageDialog(vista, "Error al registrar el mantenimiento");
         }
@@ -179,6 +211,7 @@ public class InventarioControlador implements ActionListener, CalcularMantenimie
             if (regMantenimientoDAO.actualizar(mantenimiento)) {
                 JOptionPane.showMessageDialog(vista, "Mantenimiento actualizado con éxito");
                 listarRegMantenimientos();
+                vista.limpiarFormularioMantenimiento();
                 return;
             }
         }
@@ -192,20 +225,12 @@ public class InventarioControlador implements ActionListener, CalcularMantenimie
             if (regMantenimientoDAO.eliminar(id)) {
                 JOptionPane.showMessageDialog(vista, "Registro de mantenimiento eliminado");
                 listarRegMantenimientos();
+                vista.limpiarFormularioMantenimiento();
             } else {
                 JOptionPane.showMessageDialog(vista, "Error al eliminar el mantenimiento");
             }
         } else {
-            JOptionPane.showMessageDialog(vista, "eleccione un mantenimiento de la tabla para eliminar");
-        }
-    }
-
-    public void cargarDatosParaEditarMantenimiento() {
-        // Lógica para capturar la fila seleccionada y setearla en los campos del formulario
-        //var mantenimiento = vista.getMantenimientoSeleccionado();
-        Object mantenimiento = null;
-        if (mantenimiento != null) {
-            //vista.cargarFormularioMantenimiento(mantenimiento);
+            JOptionPane.showMessageDialog(vista, "Seleccione un mantenimiento de la tabla para eliminar");
         }
     }
 
@@ -221,6 +246,7 @@ public class InventarioControlador implements ActionListener, CalcularMantenimie
         if (usuarioDAO.guardar(usuario)) {
             JOptionPane.showMessageDialog(vista, "Usuario guardado con éxito!");
             listarUsuarios();
+            vista.limpiarFormularioUsuario();
         } else {
             JOptionPane.showMessageDialog(vista, "Error al guardar el usuario");
         }
@@ -237,6 +263,7 @@ public class InventarioControlador implements ActionListener, CalcularMantenimie
             if (usuarioDAO.actualizar(usuario)) {
                 JOptionPane.showMessageDialog(vista, "Usuario modificado con éxito");
                 listarUsuarios();
+                vista.limpiarFormularioUsuario();
                 return;
             }
         }
@@ -250,19 +277,12 @@ public class InventarioControlador implements ActionListener, CalcularMantenimie
             if (usuarioDAO.eliminar(id)) {
                 JOptionPane.showMessageDialog(vista, "Usuario eliminado");
                 listarUsuarios();
+                vista.limpiarFormularioUsuario();
             } else {
                 JOptionPane.showMessageDialog(vista, "Error al eliminar usuario");
             }
         } else {
             JOptionPane.showMessageDialog(vista, "Seleccione un usuario de la tabla");
-        }
-    }
-
-    public void cargarDatosParaEditarUsuario() {
-        //var usuario = vista.getUsuarioSeleccionado();
-        Usuario usuario = null;
-        if (usuario != null) {
-            //vista.cargarFormularioUsuario(usuario);
         }
     }
 
@@ -278,6 +298,7 @@ public class InventarioControlador implements ActionListener, CalcularMantenimie
         if (custodioDAO.guardar(custodio)) {
             JOptionPane.showMessageDialog(vista, "Custodio guardado con éxito!");
             listarCustodios();
+            vista.limpiarFormularioCustodio();
         } else {
             JOptionPane.showMessageDialog(vista, "Error al guardar el custodio");
         }
@@ -294,6 +315,7 @@ public class InventarioControlador implements ActionListener, CalcularMantenimie
             if (custodioDAO.actualizar(custodio)) {
                 JOptionPane.showMessageDialog(vista, "Custodio modificado con éxito");
                 listarCustodios();
+                vista.limpiarFormularioCustodio();
                 return;
             }
         }
@@ -307,19 +329,12 @@ public class InventarioControlador implements ActionListener, CalcularMantenimie
             if (custodioDAO.eliminar(id)) {
                 JOptionPane.showMessageDialog(vista, "Custodio eliminado");
                 listarCustodios();
+                vista.limpiarFormularioCustodio();
             } else {
                 JOptionPane.showMessageDialog(vista, "Error al eliminar custodio");
             }
         } else {
             JOptionPane.showMessageDialog(vista, "Seleccione un custodio de la tabla");
-        }
-    }
-
-    public void cargarDatosParaEditarCustodio() {
-        //var custodio = vista.getCustodioSeleccionado();
-        Custodio custodio = null;
-        if (custodio != null) {
-            //vista.cargarFormularioCustodio(custodio);
         }
     }
 
@@ -333,7 +348,7 @@ public class InventarioControlador implements ActionListener, CalcularMantenimie
                 // Cálculo polimórfico según el tipo de activo
                 if (activo instanceof Hardware hw) {
                     // 5% del valor de adquisición por año de uso
-                    costoPreventivoEstimado += (hw.getCostoAdquicicion() * 0.05) * hw.getAnniosUso();
+                    costoPreventivoEstimado += (hw.getCostoAdquisicion() * 0.05) * hw.getAnniosUso();
                 } else if (activo instanceof Periferico p) {
                     // Tarifa fija de $10 anuales por desgaste
                     costoPreventivoEstimado += 10.0 * p.getAnniosUso();
