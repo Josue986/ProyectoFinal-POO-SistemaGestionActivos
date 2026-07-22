@@ -3,18 +3,22 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
 package DAOImpl;
+
 import DAOInterface.ActivoDAO;
+import DAOInterface.CustodioDAO;
 import Conexion.ConexionSQLite;
 import Modelo.*;
 
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
+
 /**
  *
  * @author jotue
  */
 public class ActivoDAOImpl implements ActivoDAO {
+
     @Override
     public boolean guardar(Activo activo) {
         String sql = "INSERT INTO sistema_activos ("
@@ -24,11 +28,12 @@ public class ActivoDAOImpl implements ActivoDAO {
                 + "tipoConexion, resolucion, tasaRefresco, dpi, "
                 + "fechaExpiracion, costoRenovacion"
                 + ") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-        
-        try (Connection conn = ConexionSQLite.conectar();
-             PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
 
-            if (conn == null) return false;
+        try (Connection conn = ConexionSQLite.conectar(); PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+
+            if (conn == null) {
+                return false;
+            }
 
             // Datos del Custodio (si tiene)
             if (activo.getCustodio() != null) {
@@ -47,7 +52,7 @@ public class ActivoDAOImpl implements ActivoDAO {
             stmt.setString(5, activo.getNombreActivo());
             stmt.setString(6, activo.getMarca());
             stmt.setString(7, activo.getTipoActivo());
-            stmt.setDouble(8, activo.getCostoAdquisicion()); 
+            stmt.setDouble(8, activo.getCostoAdquisicion());
             stmt.setString(9, activo.getEstadoActivo());
 
             // Setear NULL por defecto a campos específicos
@@ -61,7 +66,7 @@ public class ActivoDAOImpl implements ActivoDAO {
             stmt.setNull(17, Types.VARCHAR); // dpi
             stmt.setNull(18, Types.VARCHAR); // fechaExpiracion
             stmt.setNull(19, Types.DOUBLE);  // costoRenovacion
-            
+
             // Rellenar según la instancia específica
             if (activo instanceof Cpu cpu) {
                 stmt.setInt(10, cpu.getAnniosUso());
@@ -87,7 +92,7 @@ public class ActivoDAOImpl implements ActivoDAO {
                 stmt.setInt(10, per.getAnniosUso());
                 stmt.setString(14, per.getTipoConexion());
             }
-            
+
             int filas = stmt.executeUpdate();
             if (filas > 0) {
                 try (ResultSet rs = stmt.getGeneratedKeys()) {
@@ -113,11 +118,12 @@ public class ActivoDAOImpl implements ActivoDAO {
                 + "tipoConexion = ?, resolucion = ?, tasaRefresco = ?, dpi = ?, "
                 + "fechaExpiracion = ?, costoRenovacion = ? "
                 + "WHERE idRegistro = ?";
-        
-        try (Connection conn = ConexionSQLite.conectar();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
 
-            if (conn == null) return false;
+        try (Connection conn = ConexionSQLite.conectar(); PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            if (conn == null) {
+                return false;
+            }
 
             if (activo.getCustodio() != null) {
                 stmt.setString(1, activo.getCustodio().getCedula());
@@ -130,7 +136,7 @@ public class ActivoDAOImpl implements ActivoDAO {
                 stmt.setNull(3, Types.VARCHAR);
                 stmt.setNull(4, Types.VARCHAR);
             }
-            
+
             stmt.setString(5, activo.getNombreActivo());
             stmt.setString(6, activo.getMarca());
             stmt.setString(7, activo.getTipoActivo());
@@ -147,7 +153,7 @@ public class ActivoDAOImpl implements ActivoDAO {
             stmt.setNull(17, Types.VARCHAR);
             stmt.setNull(18, Types.VARCHAR);
             stmt.setNull(19, Types.DOUBLE);
-            
+
             if (activo instanceof Cpu cpu) {
                 stmt.setInt(10, cpu.getAnniosUso());
                 stmt.setString(11, cpu.getProcesador());
@@ -166,8 +172,13 @@ public class ActivoDAOImpl implements ActivoDAO {
                 java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("yyyy-MM-dd");
                 stmt.setString(18, lic.getFechaExpiracion() != null ? sdf.format(lic.getFechaExpiracion()) : null);
                 stmt.setDouble(19, lic.getCostoRenovacion());
+            } else if (activo instanceof Hardware hw) {
+                stmt.setInt(10, hw.getAnniosUso());
+            } else if (activo instanceof Periferico per) {
+                stmt.setInt(10, per.getAnniosUso());
+                stmt.setString(14, per.getTipoConexion());
             }
-            
+
             stmt.setInt(20, activo.getIdActivo());
 
             return stmt.executeUpdate() > 0;
@@ -181,8 +192,7 @@ public class ActivoDAOImpl implements ActivoDAO {
     @Override
     public boolean eliminar(int idActivo) {
         String sql = "DELETE FROM sistema_activos WHERE idRegistro = ?";
-        try (Connection conn = ConexionSQLite.conectar();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
+        try (Connection conn = ConexionSQLite.conectar(); PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             stmt.setInt(1, idActivo);
             return stmt.executeUpdate() > 0;
@@ -196,10 +206,8 @@ public class ActivoDAOImpl implements ActivoDAO {
     public List<Activo> obtenerTodos() {
         List<Activo> lista = new ArrayList<>();
         String sql = "SELECT * FROM sistema_activos";
-        
-        try (Connection conn = ConexionSQLite.conectar();
-             Statement stmt = conn.createStatement();
-             ResultSet rs = stmt.executeQuery(sql)) {
+
+        try (Connection conn = ConexionSQLite.conectar(); Statement stmt = conn.createStatement(); ResultSet rs = stmt.executeQuery(sql)) {
 
             while (rs.next()) {
                 int id = rs.getInt("idRegistro");
@@ -219,31 +227,31 @@ public class ActivoDAOImpl implements ActivoDAO {
                     custodio.setApellido(rs.getString("apellidoCustodio"));
                     custodio.setRol(rs.getString("rolCustodio"));
                 }
-                
+
                 // Reconstruir Activo según su tipo
                 Activo activo = null;
                 if ("CPU".equalsIgnoreCase(tipo)) {
                     activo = new Cpu(
-                        rs.getString("procesador"),
-                        rs.getString("memoriaRAM"),
-                        rs.getString("almacenamiento"),
-                        rs.getInt("anniosUso"),
-                        id, nombre, marca, tipo, costo, estado, custodio
+                            rs.getString("procesador"),
+                            rs.getString("memoriaRAM"),
+                            rs.getString("almacenamiento"),
+                            rs.getInt("anniosUso"),
+                            id, nombre, marca, tipo, costo, estado, custodio
                     );
                 } else if ("MONITOR".equalsIgnoreCase(tipo)) {
                     activo = new Monitor(
-                        rs.getString("resolucion"),
-                        rs.getString("tasaRefresco"),
-                        rs.getInt("anniosUso"),
-                        rs.getString("tipoConexion"),
-                        id, nombre, marca, tipo, estado, costo, custodio
+                            rs.getString("resolucion"),
+                            rs.getString("tasaRefresco"),
+                            rs.getInt("anniosUso"),
+                            rs.getString("tipoConexion"),
+                            id, nombre, marca, tipo, estado, costo, custodio
                     );
                 } else if ("MOUSE".equalsIgnoreCase(tipo)) {
                     activo = new Mouse(
-                        rs.getString("dpi"),
-                        rs.getInt("anniosUso"),
-                        rs.getString("tipoConexion"),
-                        id, nombre, marca, tipo, costo, estado, custodio
+                            rs.getString("dpi"),
+                            rs.getInt("anniosUso"),
+                            rs.getString("tipoConexion"),
+                            id, nombre, marca, tipo, costo, estado, custodio
                     );
                 } else if ("LICENCIA".equalsIgnoreCase(tipo)) {
                     java.util.Date fecha = null;
@@ -257,9 +265,9 @@ public class ActivoDAOImpl implements ActivoDAO {
                     }
 
                     activo = new Licencia(
-                        fecha, // Parsear fecha si aplica
-                        rs.getDouble("costoRenovacion"),
-                        id, nombre, marca, tipo, estado, costo, custodio
+                            fecha, // Parsear fecha si aplica
+                            rs.getDouble("costoRenovacion"),
+                            id, nombre, marca, tipo, estado, costo, custodio
                     );
                 } else if ("PERIFERICO".equalsIgnoreCase(tipo)) {
                     activo = new Periferico(rs.getInt("anniosUso"), rs.getString("tipoConexion"), id, nombre, marca, tipo, costo, estado, custodio);
@@ -270,9 +278,90 @@ public class ActivoDAOImpl implements ActivoDAO {
                     lista.add(activo);
                 }
             }
-            } catch (SQLException e) {
+        } catch (SQLException e) {
             e.printStackTrace();
         }
         return lista;
-    }     
+    }
+
+    @Override
+    public Activo obtenerPorId(int id) {
+        Activo activo = null;
+        String sql = "SELECT * FROM sistema_activos WHERE idRegistro = ?";
+
+        try (Connection conn = ConexionSQLite.conectar(); 
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setInt(1, id);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    String nombre = rs.getString("nombreActivo");
+                    String marca = rs.getString("marca");
+                    String tipo = rs.getString("tipoActivo");
+                    double costo = rs.getDouble("costoAdquisicion");
+                    String estado = rs.getString("estadoActivo");
+
+                    // Reconstruir Custodio
+                    Custodio custodio = null;
+                    String cedula = rs.getString("cedulaCustodio");
+                    if (cedula != null) {
+                        custodio = new Custodio();
+                        custodio.setCedula(cedula);
+                        custodio.setNombre(rs.getString("nombreCustodio"));
+                        custodio.setApellido(rs.getString("apellidoCustodio"));
+                        custodio.setRol(rs.getString("rolCustodio"));
+                    }
+
+                    // Reconstruir Activo según su tipo (Polimorfismo exacto)
+                    if ("CPU".equalsIgnoreCase(tipo)) {
+                        activo = new Cpu(
+                                rs.getString("procesador"),
+                                rs.getString("memoriaRAM"),
+                                rs.getString("almacenamiento"),
+                                rs.getInt("anniosUso"),
+                                id, nombre, marca, tipo, costo, estado, custodio
+                        );
+                    } else if ("MONITOR".equalsIgnoreCase(tipo)) {
+                        activo = new Monitor(
+                                rs.getString("resolucion"),
+                                rs.getString("tasaRefresco"),
+                                rs.getInt("anniosUso"),
+                                rs.getString("tipoConexion"),
+                                id, nombre, marca, tipo, estado, costo, custodio
+                        );
+                    } else if ("MOUSE".equalsIgnoreCase(tipo)) {
+                        activo = new Mouse(
+                                rs.getString("dpi"),
+                                rs.getInt("anniosUso"),
+                                rs.getString("tipoConexion"),
+                                id, nombre, marca, tipo, costo, estado, custodio
+                        );
+                    } else if ("LICENCIA".equalsIgnoreCase(tipo)) {
+                        java.util.Date fecha = null;
+                        String fechaStr = rs.getString("fechaExpiracion");
+                        if (fechaStr != null && !fechaStr.isEmpty()) {
+                            try {
+                                fecha = new java.text.SimpleDateFormat("yyyy-MM-dd").parse(fechaStr);
+                            } catch (java.text.ParseException e) {
+                                e.printStackTrace();
+                            }
+                        }
+
+                        activo = new Licencia(
+                                fecha,
+                                rs.getDouble("costoRenovacion"),
+                                id, nombre, marca, tipo, estado, costo, custodio
+                        );
+                    } else if ("PERIFERICO".equalsIgnoreCase(tipo)) {
+                        activo = new Periferico(rs.getInt("anniosUso"), rs.getString("tipoConexion"), id, nombre, marca, tipo, costo, estado, custodio);
+                    } else {
+                        activo = new Hardware(rs.getInt("anniosUso"), id, nombre, marca, tipo, costo, estado, custodio);
+                    }
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return activo;
+    }
 }

@@ -21,51 +21,40 @@ public class RegMantenimientoDAOImpl implements RegMantenimientoDAO {
 
     @Override
     public boolean guardar(RegMantenimiento reg) {
-        String sql = "INSERT INTO mantenimientos (detallesMantenimiento, fechaInicio, fechaFin, costoMantenimiento, id_activo, id_usuario) VALUES (?, ?, ?, ?, ?, ?)";
-
-        try (Connection conn = ConexionSQLite.conectar();
-             PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-
-            if (conn == null) return false;
-
-            stmt.setString(1, reg.getDetallesMantenimiento());
-            stmt.setString(2, reg.getFechaInicio() != null ? dateFormat.format(reg.getFechaInicio()) : null);
-            stmt.setString(3, reg.getFechaFin() != null ? dateFormat.format(reg.getFechaFin()) : null);
-            stmt.setDouble(4, reg.getCostoMantenimiento());
-            stmt.setInt(5, reg.getActivo() != null ? reg.getActivo().getIdActivo() : 0);
-            stmt.setInt(6, reg.getUsuario() != null ? reg.getUsuario().getIdUsuario() : 0);
-
-            int filasAfectadas = stmt.executeUpdate();
-            if (filasAfectadas > 0) {
-                try (ResultSet rs = stmt.getGeneratedKeys()) {
-                    if (rs.next()) {
-                        reg.setIdMantenimiento(rs.getInt(1));
-                    }
-                }
-                return true;
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return false;
-    }
-
-    @Override
-    public boolean actualizar(RegMantenimiento reg) {
-        String sql = "UPDATE mantenimientos SET detallesMantenimiento = ?, fechaInicio = ?, fechaFin = ?, costoMantenimiento = ?, id_activo = ?, id_usuario = ? WHERE idMantenimiento = ?";
+        String sql = "UPDATE sistema_activos SET detallesMantenimiento = ?, fechaInicio = ?, fechaFin = ?, costoMantenimiento = ? WHERE idRegistro = ?";
 
         try (Connection conn = ConexionSQLite.conectar();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
-            if (conn == null) return false;
+            if (conn == null || reg.getActivo() == null) return false;
 
             stmt.setString(1, reg.getDetallesMantenimiento());
             stmt.setString(2, reg.getFechaInicio() != null ? dateFormat.format(reg.getFechaInicio()) : null);
             stmt.setString(3, reg.getFechaFin() != null ? dateFormat.format(reg.getFechaFin()) : null);
             stmt.setDouble(4, reg.getCostoMantenimiento());
-            stmt.setInt(5, reg.getActivo() != null ? reg.getActivo().getIdActivo() : 0);
-            stmt.setInt(6, reg.getUsuario() != null ? reg.getUsuario().getIdUsuario() : 0);
-            stmt.setInt(7, reg.getIdMantenimiento());
+            stmt.setInt(5, reg.getActivo().getIdActivo());
+
+            return stmt.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    @Override
+    public boolean actualizar(RegMantenimiento reg) {
+        String sql = "UPDATE sistema_activos SET detallesMantenimiento = ?, fechaInicio = ?, fechaFin = ?, costoMantenimiento = ? WHERE idRegistro = ?";
+
+        try (Connection conn = ConexionSQLite.conectar();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            if (conn == null || reg.getActivo() == null) return false;
+
+            stmt.setString(1, reg.getDetallesMantenimiento());
+            stmt.setString(2, reg.getFechaInicio() != null ? dateFormat.format(reg.getFechaInicio()) : null);
+            stmt.setString(3, reg.getFechaFin() != null ? dateFormat.format(reg.getFechaFin()) : null);
+            stmt.setDouble(4, reg.getCostoMantenimiento());
+            stmt.setInt(5, reg.getActivo().getIdActivo());
 
             return stmt.executeUpdate() > 0;
         } catch (SQLException e) {
@@ -76,7 +65,7 @@ public class RegMantenimientoDAOImpl implements RegMantenimientoDAO {
 
     @Override
     public boolean eliminar(int idMantenimiento) {
-        String sql = "DELETE FROM mantenimientos WHERE idMantenimiento = ?";
+        String sql = "UPDATE sistema_activos SET detallesMantenimiento = NULL, fechaInicio = NULL, fechaFin = NULL, costoMantenimiento = 0.0 WHERE idRegistro = ?";
 
         try (Connection conn = ConexionSQLite.conectar();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -94,9 +83,8 @@ public class RegMantenimientoDAOImpl implements RegMantenimientoDAO {
     @Override
     public List<RegMantenimiento> obtenerTodos() {
         List<RegMantenimiento> lista = new ArrayList<>();
-        // Un solo LEFT JOIN a sistema_activos
-        String sql = "SELECT m.*, a.* FROM mantenimientos m " +
-                     "LEFT JOIN sistema_activos a ON m.id_activo = a.idRegistro";
+        // Consulta todos los registros de sistema_activos que tengan detalles de mantenimiento registrados
+        String sql = "SELECT * FROM sistema_activos WHERE detallesMantenimiento IS NOT NULL AND detallesMantenimiento != ''";
 
         try (Connection conn = ConexionSQLite.conectar();
              Statement stmt = conn.createStatement();
@@ -117,9 +105,7 @@ public class RegMantenimientoDAOImpl implements RegMantenimientoDAO {
     @Override
     public List<RegMantenimiento> obtenerRegMantenimientosActivo(int idActivo) {
         List<RegMantenimiento> lista = new ArrayList<>();
-        String sql = "SELECT m.*, a.* FROM mantenimientos m " +
-                     "LEFT JOIN sistema_activos a ON m.id_activo = a.idRegistro " +
-                     "WHERE m.id_activo = ?";
+        String sql = "SELECT * FROM sistema_activos WHERE idRegistro = ? AND detallesMantenimiento IS NOT NULL";
 
         try (Connection conn = ConexionSQLite.conectar();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -142,7 +128,7 @@ public class RegMantenimientoDAOImpl implements RegMantenimientoDAO {
     // Auxiliar para parsear las fechas y construir el objeto con su constructor
     private RegMantenimiento mapearMantenimiento(ResultSet rs) {
         try {
-            int id = rs.getInt("idMantenimiento");
+            int idActivo = rs.getInt("idRegistro");
             String detalles = rs.getString("detallesMantenimiento");
 
             String fInicioStr = rs.getString("fechaInicio");
@@ -151,8 +137,6 @@ public class RegMantenimientoDAOImpl implements RegMantenimientoDAO {
             java.util.Date fFin = (fFinStr != null && !fFinStr.trim().isEmpty()) ? dateFormat.parse(fFinStr) : null;
 
             double costo = rs.getDouble("costoMantenimiento");
-            int idActivo = rs.getInt("id_activo");
-            int idUsuario = rs.getInt("id_usuario");
 
             // Reconstrucción del Custodio
             Custodio custodio = null;
@@ -185,7 +169,6 @@ public class RegMantenimientoDAOImpl implements RegMantenimientoDAO {
                     idActivo, nombreActivo, marca, tipoActivo, costoAdq, estado, custodio
                 );
             } else if ("MONITOR".equalsIgnoreCase(tipoActivo)) {
-                // Firma real de Monitor: (resolucion, tasaDeRefresco, anniosUso, tipoConexion, idActivo, nombreActivo, marca, tipoActivo, estadoActivo, costoAdquisicion, custodio)
                 activo = new Monitor(
                     rs.getString("resolucion"),
                     rs.getString("tasaRefresco"),
@@ -210,7 +193,6 @@ public class RegMantenimientoDAOImpl implements RegMantenimientoDAO {
                         // Ignorar si la fecha no parsea
                     }
                 }
-                // Firma real de Licencia: (fechaExpiracion, costoRenovacion, idActivo, nombreActivo, marca, tipoActivo, estadoActivo, costoAdquisicion, custodio)
                 activo = new Licencia(
                     fExp,
                     rs.getDouble("costoRenovacion"),
@@ -229,10 +211,10 @@ public class RegMantenimientoDAOImpl implements RegMantenimientoDAO {
                 );
             }
 
-            Usuario usuarioDummy = new Usuario(idUsuario, null);
+            Usuario usuarioDummy = new Usuario(idActivo, null);
             
-            // Firma real de RegMantenimiento: (idMantenimiento, detallesMantenimiento, fechaInicio, fechaFin, costoMantenimiento, activo, usuario)
-            return new RegMantenimiento(id, detalles, fInicio, fFin, costo, activo, usuarioDummy);
+            // Retorna el registro usando el idActivo como identificador del mantenimiento
+            return new RegMantenimiento(idActivo, detalles, fInicio, fFin, costo, activo, usuarioDummy);
 
         } catch (Exception e) {
             e.printStackTrace();

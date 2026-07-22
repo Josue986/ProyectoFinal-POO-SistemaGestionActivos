@@ -14,4 +14,5 @@ public interface ActivoDAO {
     boolean actualizar(Activo activo);
     boolean eliminar(int idActivo);
     List<Activo> obtenerTodos();
+    Activo obtenerPorId(int id);
 }

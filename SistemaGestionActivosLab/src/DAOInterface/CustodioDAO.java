@@ -14,4 +14,6 @@ public interface CustodioDAO {
     boolean actualizar(Custodio custodio);
     boolean eliminar(int idCustodio);
     List<Custodio> obtenerTodos();
+    
+    Custodio obtenerPorId(int idCustodio);
 }

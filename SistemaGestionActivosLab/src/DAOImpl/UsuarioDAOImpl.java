@@ -19,14 +19,20 @@ import java.util.List;
 public class UsuarioDAOImpl implements UsuarioDAO{
     @Override
     public boolean guardar(Usuario usuario) {
-        String sql = "INSERT INTO usuarios (id_custodio) VALUES (?)";
+       // Inserta o vincula el usuario/custodio guardando los datos en sistema_activos
+        String sql = "INSERT INTO sistema_activos (cedulaCustodio, nombreCustodio, apellidoCustodio, rolCustodio, nombreActivo, tipoActivo, estadoActivo) "
+                   + "VALUES (?, ?, ?, ?, 'Sin Activo Asignado', 'General', 'Activo')";
         
         try (Connection conn = ConexionSQLite.conectar();
              PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             
             if (conn == null || usuario.getCustodio() == null) return false;
 
-            stmt.setInt(1, usuario.getCustodio().getIdCustodio());
+            Custodio c = usuario.getCustodio();
+            stmt.setString(1, c.getCedula());
+            stmt.setString(2, c.getNombre());
+            stmt.setString(3, c.getApellido());
+            stmt.setString(4, c.getRol());
 
             int filasAfectadas = stmt.executeUpdate();
             if (filasAfectadas > 0) {
@@ -45,15 +51,20 @@ public class UsuarioDAOImpl implements UsuarioDAO{
 
     @Override
     public boolean actualizar(Usuario usuario) {
-        String sql = "UPDATE usuarios SET id_custodio = ? WHERE idUsuario = ?";
+        // Actualiza los datos del custodio/usuario basándose en su ID de registro
+        String sql = "UPDATE sistema_activos SET cedulaCustodio = ?, nombreCustodio = ?, apellidoCustodio = ?, rolCustodio = ? WHERE idRegistro = ?";
         
         try (Connection conn = ConexionSQLite.conectar();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             
             if (conn == null || usuario.getCustodio() == null) return false;
 
-            stmt.setInt(1, usuario.getCustodio().getIdCustodio());
-            stmt.setInt(2, usuario.getIdUsuario());
+            Custodio c = usuario.getCustodio();
+            stmt.setString(1, c.getCedula());
+            stmt.setString(2, c.getNombre());
+            stmt.setString(3, c.getApellido());
+            stmt.setString(4, c.getRol());
+            stmt.setInt(5, usuario.getIdUsuario());
 
             return stmt.executeUpdate() > 0;
         } catch (SQLException e) {
@@ -64,7 +75,8 @@ public class UsuarioDAOImpl implements UsuarioDAO{
 
     @Override
     public boolean eliminar(int idUsuario) {
-        String sql = "DELETE FROM usuarios WHERE idUsuario = ?";
+        // En lugar de borrar la fila entera (lo que eliminaría el activo), desvincula los datos del usuario/custodio
+        String sql = "UPDATE sistema_activos SET cedulaCustodio = NULL, nombreCustodio = NULL, apellidoCustodio = NULL, rolCustodio = NULL WHERE idRegistro = ?";
         
         try (Connection conn = ConexionSQLite.conectar();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -82,9 +94,10 @@ public class UsuarioDAOImpl implements UsuarioDAO{
     @Override
     public List<Usuario> obtenerTodos() {
         List<Usuario> lista = new ArrayList<>();
-        String sql = "SELECT u.idUsuario, c.idCustodio, c.cedulaCustodio, c.nombreCustodio, c.apellidoCustodio, c.rolCustodio " +
-                     "FROM usuarios u " +
-                     "LEFT JOIN custodios c ON u.id_custodio = c.idCustodio";
+        // Consulta los registros que tienen información de custodio asociada dentro de sistema_activos
+        String sql = "SELECT idRegistro, cedulaCustodio, nombreCustodio, apellidoCustodio, rolCustodio " +
+                     "FROM sistema_activos " +
+                     "WHERE cedulaCustodio IS NOT NULL AND cedulaCustodio != ''";
 
         try (Connection conn = ConexionSQLite.conectar();
              Statement stmt = conn.createStatement();
@@ -93,19 +106,16 @@ public class UsuarioDAOImpl implements UsuarioDAO{
             if (conn == null) return lista;
 
             while (rs.next()) {
-                Custodio c = null;
-                int idC = rs.getInt("idCustodio");
-                if (!rs.wasNull()) {
-                    c = new Custodio(
-                        idC,
-                        rs.getString("cedulaCustodio"),
-                        rs.getString("nombreCustodio"),
-                        rs.getString("apellidoCustodio"),
-                        rs.getString("rolCustodio")
-                    );
-                }
+                int idReg = rs.getInt("idRegistro");
+                Custodio c = new Custodio(
+                    idReg,
+                    rs.getString("cedulaCustodio"),
+                    rs.getString("nombreCustodio"),
+                    rs.getString("apellidoCustodio"),
+                    rs.getString("rolCustodio")
+                );
                 
-                Usuario u = new Usuario(rs.getInt("idUsuario"), c);
+                Usuario u = new Usuario(idReg, c);
                 lista.add(u);
             }
         } catch (SQLException e) {

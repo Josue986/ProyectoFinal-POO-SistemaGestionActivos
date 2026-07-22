@@ -86,4 +86,8 @@ public abstract class Activo {
     public void setCustodio(Custodio custodio) {
         this.custodio = custodio;
     }
+
+    public void setAnniosUso(int aInt) {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    }
 }

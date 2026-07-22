@@ -38,4 +38,5 @@ public class Monitor extends Periferico {
     public void setTasaDeRefresco(String tasaDeRefresco) {
         this.tasaDeRefresco = tasaDeRefresco;
     }
+
 }

@@ -59,7 +59,14 @@ public class InventarioControlador implements ActionListener, CalcularMantenimie
         this.vista.tablaActivos.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
-                vista.cargarFormularioActivoDesdeTabla();
+                String idStr = vista.obtenerIdActivoSeleccionado();
+                if (idStr != null && !idStr.isEmpty()) {
+                    int id = Integer.parseInt(idStr);
+                    // 1. Buscamos el activo completo (con polimorfismo y atributos específicos) en el DAO
+                    Activo activoCompleto = activoDAO.obtenerPorId(id);
+                    // 2. Se lo pasamos a la vista para que pinte todo (general + dinámico + custodio)
+                    vista.cargarFormularioActivoDesdeTabla(activoCompleto);
+                }
             }
         });
 
