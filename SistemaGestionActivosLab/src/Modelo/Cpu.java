@@ -12,11 +12,14 @@ public class Cpu extends Hardware {
     private String procesador;
     private String memoriaRAM;
     private String almacenamiento;
+
+    public Cpu() {
+    }
     
     public Cpu(String procesador, String memoriaRAM, String almacenamiento, 
             int anniosUso, int idActivo, String nombreActivo, String marca, String tipoActivo, 
-            double costoAdquicicion, String estadoActivo, Custodio custodio) {
-        super(anniosUso, idActivo, nombreActivo, marca, tipoActivo, costoAdquicicion, estadoActivo, custodio);
+            double costoAdquisicion, String estadoActivo, Custodio custodio) {
+        super(anniosUso, idActivo, nombreActivo, marca, tipoActivo, costoAdquisicion, estadoActivo, custodio);
         this.procesador = procesador;
         this.memoriaRAM = memoriaRAM;
         this.almacenamiento = almacenamiento;

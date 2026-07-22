@@ -12,6 +12,9 @@ public class Usuario {
     private int idUsuario;
     private Custodio custodio;
 
+    public Usuario() {
+    }
+
     public Usuario(int idUsuario) {
         this.idUsuario = idUsuario;
     }
@@ -25,8 +28,8 @@ public class Usuario {
         return idUsuario;
     }
 
-    public void setIdUsuario(int idUusario) {
-        this.idUsuario = idUusario;
+    public void setIdUsuario(int idUsario) {
+        this.idUsuario = idUsario;
     }
 
     public Custodio getCustodio() {

@@ -13,9 +13,12 @@ public class Licencia extends Activo {
     private Date fechaExpiracion;
     private double costoRenovacion;
 
+    public Licencia() {
+    }
+
     public Licencia(Date fechaExpiracion, double costoRenovacion, int idActivo, 
-            String nombreActivo, String marca, String tipoActivo, String estadoActivo, double costoAdquicicion, Custodio custodio) {
-        super(idActivo, nombreActivo, marca, tipoActivo, costoAdquicicion, estadoActivo, custodio);
+            String nombreActivo, String marca, String tipoActivo, String estadoActivo, double costoAdquisicion, Custodio custodio) {
+        super(idActivo, nombreActivo, marca, tipoActivo, costoAdquisicion, estadoActivo, custodio);
         this.fechaExpiracion = fechaExpiracion;
         this.costoRenovacion = costoRenovacion;
     }

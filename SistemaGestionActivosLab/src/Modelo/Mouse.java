@@ -11,9 +11,12 @@ package Modelo;
 public class Mouse extends Periferico {
     private String dpi;
 
+    public Mouse() {
+    }
+
     public Mouse(String dpi, int anniosUso, String tipoConexion, int idActivo, 
-            String nombreActivo, String marca, String tipoActivo, double costoAdquicicion, String estadoActivo, Custodio custodio) {
-        super(anniosUso, tipoConexion, idActivo, nombreActivo, marca, tipoActivo, costoAdquicicion, estadoActivo, custodio);
+            String nombreActivo, String marca, String tipoActivo, double costoAdquisicion, String estadoActivo, Custodio custodio) {
+        super(anniosUso, tipoConexion, idActivo, nombreActivo, marca, tipoActivo, costoAdquisicion, estadoActivo, custodio);
         this.dpi = dpi;
     }
 

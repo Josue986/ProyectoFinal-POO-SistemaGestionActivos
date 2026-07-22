@@ -82,9 +82,9 @@ public class UsuarioDAOImpl implements UsuarioDAO{
     @Override
     public List<Usuario> obtenerTodos() {
         List<Usuario> lista = new ArrayList<>();
-        String sql = "SELECT u.idUsuario, c.idCustodio, c.cedula, c.nombre, c.apellido, c.rol " +
+        String sql = "SELECT u.idUsuario, c.idCustodio, c.cedulaCustodio, c.nombreCustodio, c.apellidoCustodio, c.rolCustodio " +
                      "FROM usuarios u " +
-                     "INNER JOIN custodios c ON u.id_custodio = c.idCustodio";
+                     "LEFT JOIN custodios c ON u.id_custodio = c.idCustodio";
 
         try (Connection conn = ConexionSQLite.conectar();
              Statement stmt = conn.createStatement();
@@ -93,13 +93,17 @@ public class UsuarioDAOImpl implements UsuarioDAO{
             if (conn == null) return lista;
 
             while (rs.next()) {
-                Custodio c = new Custodio(
-                    rs.getInt("idCustodio"),
-                    rs.getString("cedula"),
-                    rs.getString("nombre"),
-                    rs.getString("apellido"),
-                    rs.getString("rol")
-                );
+                Custodio c = null;
+                int idC = rs.getInt("idCustodio");
+                if (!rs.wasNull()) {
+                    c = new Custodio(
+                        idC,
+                        rs.getString("cedulaCustodio"),
+                        rs.getString("nombreCustodio"),
+                        rs.getString("apellidoCustodio"),
+                        rs.getString("rolCustodio")
+                    );
+                }
                 
                 Usuario u = new Usuario(rs.getInt("idUsuario"), c);
                 lista.add(u);

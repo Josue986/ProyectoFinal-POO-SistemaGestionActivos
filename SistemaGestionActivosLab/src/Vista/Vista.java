@@ -410,7 +410,7 @@ public class Vista extends JFrame {
                     a.getNombreActivo(),
                     a.getMarca(),
                     a.getTipoActivo(),
-                    a.getCostoAdquicicion(),
+                    a.getCostoAdquisicion(),
                     a.getEstadoActivo(),
                     nombreCustodio
                 });
@@ -470,9 +470,8 @@ public class Vista extends JFrame {
                         anniosUso, 
                         txtConexionMonitor.getText().trim(),
                         idActivo, nombre, marca, "MONITOR", 
-                        0.0,    // costoMantenimiento (exigido por el constructor de Monitor)
                         estado, 
-                        costo,  // costoAdquicicion
+                        costo, 
                         custodioAux
                     );
                     
@@ -523,7 +522,7 @@ public class Vista extends JFrame {
             return null;
         }
     }
-    
+      
     // --- MÉTODOS DE LIMPIEZA DE FORMULARIOS ---
     public void limpiarFormularioActivo() {
         txtIdActivo.setText("");
@@ -760,9 +759,7 @@ public class Vista extends JFrame {
         Date fInicio = sdf.parse(fInicioStr);
         Date fFin = fFinStr.isEmpty() ? null : sdf.parse(fFinStr);
         
-        RegMantenimiento reg = new RegMantenimiento(0, detalles, fInicio, fFin, activoAux, usuarioAux);
-        reg.setCostoMantenimiento(costo);
-        return reg;
+        return new RegMantenimiento(0, detalles, fInicio, fFin, costo, activoAux, usuarioAux);
     } catch (Exception e) {
         System.err.println("Error en obtenerDatosMantenimiento: " + e.getMessage());
         return null;
