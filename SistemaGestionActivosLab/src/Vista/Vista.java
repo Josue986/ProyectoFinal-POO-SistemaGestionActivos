@@ -11,9 +11,23 @@ import java.util.Date;
 // Solo una clase, extendiendo JFrame directamente
 public class Vista extends JFrame {
     
-    //--- Pestaña 1: ACTIVOS ---
+    //--- Pestaña 1: ACTIVOS ----
     public JTextField txtIdActivo, txtNombreActivo, txtMarcaActivo, txtCostoActivo, txtEstadoActivo, txtIdCustodioActivo, txtAnniosUsoActivo;
-    public JComboBox<String> cbTipoActivo;
+    public JComboBox<String> cbCategoriaActivo, cbSubtipoActivo;
+    
+    // Campos dinámicos
+    // CPU
+    public JTextField txtProcesador, txtRam, txtAlmacenamiento;
+    // Monitor
+    public JTextField txtResolucion, txtTasaRefresco, txtConexionMonitor;
+    // Mouse
+    public JTextField txtDpi, txtConexionMouse;
+    // Licencia
+    public JTextField txtFechaExpiracion, txtCostoRenovacion;
+
+    private CardLayout cardLayoutEspecifico;
+    private JPanel panelFormularioDinamico;
+    
     public JButton btnGuardarActivo, btnActualizarActivo, btnEliminarActivo;
     public JTable tablaActivos;
     private DefaultTableModel modeloTablaActivos;
@@ -39,7 +53,7 @@ public class Vista extends JFrame {
     public Vista() {
         // Configuramos la ventana básica
         this.setTitle("Sistema de Gestión de Activos e Inventarios - UTPL");
-        this.setSize(1000, 700);
+        this.setSize(1050, 750);
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
 
@@ -53,66 +67,190 @@ public class Vista extends JFrame {
         this.add(panelPestañas);
     }
     
-    //  PANEL ACTIVOS | CONSTRUCCIÓN DE PANELES (UI)
+    //  PANEL ACTIVOS | CONSTRUCCIÓN DE PANELES (UI) DINÁMICO CON CARDLAYOUT
     private JPanel crearPanelActivos() {
         JPanel panel = new JPanel(new BorderLayout());
 
         JPanel panelForm = new JPanel(new GridLayout(8, 2, 5, 5));
-        panelForm.setBorder(BorderFactory.createTitledBorder("Datos del Activo"));
+        panelForm.setBorder(BorderFactory.createTitledBorder("Datos Generales del Activo"));
 
         txtIdActivo = new JTextField();
         txtIdActivo.setEditable(false);
         txtNombreActivo = new JTextField();
-        txtMarcaActivo = new JTextField();
-        
-        // JComboBox con las opciones concretas
-        cbTipoActivo = new JComboBox<>(new String[]{"Hardware", "Periferico", "Licencia"});
-        
+        txtMarcaActivo = new JTextField();  
         txtCostoActivo = new JTextField();
         txtEstadoActivo = new JTextField();
         txtIdCustodioActivo = new JTextField();
         txtAnniosUsoActivo = new JTextField("0");
+        
+        // Selección multinivel / cascada
+        cbCategoriaActivo = new JComboBox<>(new String[]{"Hardware", "Periférico", "Licencia"});
+        cbSubtipoActivo = new JComboBox<>();
+        
+        // Eventos para actualizar la cascada y la vista dinámica
+        cbCategoriaActivo.addActionListener(e -> actualizarSubtipos());
+        cbSubtipoActivo.addActionListener(e -> cambiarPanelEspecifico());
 
         panelForm.add(new JLabel("ID Activo:"));
         panelForm.add(txtIdActivo);
+        panelForm.add(new JLabel("Categoría Principal:"));
+        panelForm.add(cbCategoriaActivo);
+        panelForm.add(new JLabel("Subtipo Específico:"));
+        panelForm.add(cbSubtipoActivo);
         panelForm.add(new JLabel("Nombre Activo:"));
         panelForm.add(txtNombreActivo);
         panelForm.add(new JLabel("Marca:"));
         panelForm.add(txtMarcaActivo);
-        panelForm.add(new JLabel("Tipo Activo:"));
-        panelForm.add(cbTipoActivo);
         panelForm.add(new JLabel("Costo Adquisición ($):"));
         panelForm.add(txtCostoActivo);
         panelForm.add(new JLabel("Años de Uso:"));
         panelForm.add(txtAnniosUsoActivo);
-        panelForm.add(new JLabel("Estado Activo:"));
+        panelForm.add(new JLabel("Estado:"));
         panelForm.add(txtEstadoActivo);
-        panelForm.add(new JLabel("ID Custodio:"));
-        panelForm.add(txtIdCustodioActivo);
+
+        // Paneles Dinámicos (CardLayout)
+        cardLayoutEspecifico = new CardLayout();
+        panelFormularioDinamico = new JPanel(cardLayoutEspecifico);
+        panelFormularioDinamico.setBorder(BorderFactory.createTitledBorder("Atributos Especializados del Subtipo"));
+
+        panelFormularioDinamico.add(crearPanelCpu(), "CPU");
+        panelFormularioDinamico.add(crearPanelHardwareGen(), "HARDWARE_GENERICO");
+        panelFormularioDinamico.add(crearPanelMonitor(), "MONITOR");
+        panelFormularioDinamico.add(crearPanelMouse(), "MOUSE");
+        panelFormularioDinamico.add(crearPanelPerifericoGen(), "PERIFERICO_GENERICO");
+        panelFormularioDinamico.add(crearPanelLicencia(), "LICENCIA");
+
+        JPanel panelCustodioAux = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        panelCustodioAux.add(new JLabel("ID Custodio Asociado:"));
+        panelCustodioAux.add(txtIdCustodioActivo);
+        txtIdCustodioActivo.setPreferredSize(new Dimension(100, 25));
+
+        JPanel panelFormularioCompleto = new JPanel(new BorderLayout());
+        panelFormularioCompleto.add(panelForm, BorderLayout.NORTH);
+        panelFormularioCompleto.add(panelFormularioDinamico, BorderLayout.CENTER);
+        panelFormularioCompleto.add(panelCustodioAux, BorderLayout.SOUTH);
 
         JPanel panelBotones = new JPanel();
         btnGuardarActivo = new JButton("Guardar");
         btnActualizarActivo = new JButton("Actualizar");
         btnEliminarActivo = new JButton("Eliminar");
-
+        
         panelBotones.add(btnGuardarActivo);
         panelBotones.add(btnActualizarActivo);
         panelBotones.add(btnEliminarActivo);
-
+        
         JPanel panelSuperior = new JPanel(new BorderLayout());
-        panelSuperior.add(panelForm, BorderLayout.CENTER);
+        panelSuperior.add(panelFormularioCompleto, BorderLayout.CENTER);
         panelSuperior.add(panelBotones, BorderLayout.SOUTH);
-
+        
         modeloTablaActivos = new DefaultTableModel(
             new String[]{"ID", "Nombre", "Marca", "Tipo", "Costo Adquisición", "Estado", "Custodio"}, 0
         );
         tablaActivos = new JTable(modeloTablaActivos);
-
+        
         panel.add(panelSuperior, BorderLayout.NORTH);
         panel.add(new JScrollPane(tablaActivos), BorderLayout.CENTER);
+        
+        actualizarSubtipos();
 
         return panel;
     }  
+    
+    // Subpaneles para CardLayout
+    private JPanel crearPanelCpu() {
+        JPanel p = new JPanel(new GridLayout(3, 2, 5, 5));
+        txtProcesador = new JTextField();
+        txtRam = new JTextField();
+        txtAlmacenamiento = new JTextField();
+        p.add(new JLabel("Procesador:")); p.add(txtProcesador);
+        p.add(new JLabel("Memoria RAM:")); p.add(txtRam);
+        p.add(new JLabel("Almacenamiento:")); p.add(txtAlmacenamiento);
+        return p;
+    }
+    
+    private JPanel crearPanelHardwareGen() {
+        JPanel p = new JPanel();
+        p.add(new JLabel("No se requieren datos adicionales para Hardware Genérico."));
+        return p;
+    }
+    
+    private JPanel crearPanelMonitor() {
+        JPanel p = new JPanel(new GridLayout(3, 2, 5, 5));
+        txtResolucion = new JTextField();
+        txtTasaRefresco = new JTextField();
+        txtConexionMonitor = new JTextField("HDMI/DisplayPort");
+        p.add(new JLabel("Resolución:")); p.add(txtResolucion);
+        p.add(new JLabel("Tasa de Refresco:")); p.add(txtTasaRefresco);
+        p.add(new JLabel("Tipo de Conexión:")); p.add(txtConexionMonitor);
+        return p;
+    }
+    
+    private JPanel crearPanelMouse() {
+        JPanel p = new JPanel(new GridLayout(2, 2, 5, 5));
+        txtDpi = new JTextField();
+        txtConexionMouse = new JTextField("USB/Inalámbrico");
+        p.add(new JLabel("DPI:")); p.add(txtDpi);
+        p.add(new JLabel("Tipo de Conexión:")); p.add(txtConexionMouse);
+        return p;
+    }
+    
+    private JPanel crearPanelPerifericoGen() {
+        JPanel p = new JPanel();
+        p.add(new JLabel("No se requieren datos adicionales para Periférico Genérico."));
+        return p;
+    }
+    
+    private JPanel crearPanelLicencia() {
+        JPanel p = new JPanel(new GridLayout(2, 2, 5, 5));
+        txtFechaExpiracion = new JTextField("yyyy-MM-dd");
+        txtCostoRenovacion = new JTextField("0.0");
+        p.add(new JLabel("Fecha Expiración:")); p.add(txtFechaExpiracion);
+        p.add(new JLabel("Costo Renovación ($):")); p.add(txtCostoRenovacion);
+        return p;
+    }
+    
+    // Lógica de actualización de Cascada / CardLayout
+    private void actualizarSubtipos() {
+        cbSubtipoActivo.removeAllItems();
+        String cat = (String) cbCategoriaActivo.getSelectedItem();
+        if ("Hardware".equals(cat)) {
+            cbSubtipoActivo.addItem("CPU");
+            cbSubtipoActivo.addItem("Hardware Genérico");
+        } else if ("Periférico".equals(cat)) {
+            cbSubtipoActivo.addItem("Monitor");
+            cbSubtipoActivo.addItem("Mouse");
+            cbSubtipoActivo.addItem("Periférico Genérico");
+        } else if ("Licencia".equals(cat)) {
+            cbSubtipoActivo.addItem("Licencia de Software");
+        }
+        cambiarPanelEspecifico();
+    }
+    
+    private void cambiarPanelEspecifico() {
+        String subtipo = (String) cbSubtipoActivo.getSelectedItem();
+        if (subtipo == null) return;
+
+        switch (subtipo) {
+            case "CPU":
+                cardLayoutEspecifico.show(panelFormularioDinamico, "CPU");
+                break;
+            case "Hardware Genérico":
+                cardLayoutEspecifico.show(panelFormularioDinamico, "HARDWARE_GENERICO");
+                break;
+            case "Monitor":
+                cardLayoutEspecifico.show(panelFormularioDinamico, "MONITOR");
+                break;
+            case "Mouse":
+                cardLayoutEspecifico.show(panelFormularioDinamico, "MOUSE");
+                break;
+            case "Periférico Genérico":
+                cardLayoutEspecifico.show(panelFormularioDinamico, "PERIFERICO_GENERICO");
+                break;
+            case "Licencia de Software":
+                cardLayoutEspecifico.show(panelFormularioDinamico, "LICENCIA");
+                break;
+        }
+    }
     
     //  PANEL CUSTODIOS
     private JPanel crearPanelCustodios() {
@@ -260,8 +398,7 @@ public class Vista extends JFrame {
         return panel;
     }
     
-    //  MÉTODOS HELPER DE INTEGRACIÓN CON MODELO
-    
+    // MÉTODOS DE MAPEO POLIMÓRFICO
     // --- ACTIVOS ---
     public void mostrarLista(List<Activo> activos) {
         modeloTablaActivos.setRowCount(0);
@@ -290,7 +427,7 @@ public class Vista extends JFrame {
 
         String nombre = txtNombreActivo.getText().trim();
         String marca = txtMarcaActivo.getText().trim();
-        String tipo = cbTipoActivo.getSelectedItem().toString();
+        String subtipo = (String) cbSubtipoActivo.getSelectedItem();
         String estado = txtEstadoActivo.getText().trim();
 
         if (nombre.isEmpty() || estado.isEmpty()) {
@@ -315,46 +452,127 @@ public class Vista extends JFrame {
             custodioAux.setIdCustodio(idCustodio);
         }
 
-        switch (tipo) {
-            case "Hardware":
-                return new Hardware(anniosUso, idActivo, nombre, marca, tipo, costo, estado, custodioAux);
+        switch (subtipo) {
+            case "CPU":
+                return new Cpu(
+                        txtProcesador.getText().trim(),
+                        txtRam.getText().trim(),
+                        txtAlmacenamiento.getText().trim(),
+                        anniosUso, idActivo, nombre, marca, "CPU", 
+                        costo, 
+                        estado, 
+                        custodioAux
+                    );
+            case "Monitor":
+                    return new Monitor(
+                        txtResolucion.getText().trim(),
+                        txtTasaRefresco.getText().trim(),
+                        anniosUso, 
+                        txtConexionMonitor.getText().trim(),
+                        idActivo, nombre, marca, "MONITOR", 
+                        0.0,    // costoMantenimiento (exigido por el constructor de Monitor)
+                        estado, 
+                        costo,  // costoAdquicicion
+                        custodioAux
+                    );
+                    
+            case "Mouse":
+                    return new Mouse(
+                        txtDpi.getText().trim(),
+                        anniosUso, txtConexionMouse.getText().trim(),
+                        idActivo, nombre, marca, "MOUSE", costo, estado, custodioAux
+                    );
+            
+            case "Licencia de Software":
+                    SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+                    Date fechaExp = null;
+                    try {
+                        fechaExp = sdf.parse(txtFechaExpiracion.getText().trim());
+                    } catch (Exception ex) {
+                        fechaExp = new Date();
+                    }
+                    double costoRenov = 0.0;
+                    if (!txtCostoRenovacion.getText().trim().isEmpty()) {
+                        costoRenov = Double.parseDouble(txtCostoRenovacion.getText().trim().replace(",", "."));
+                    }
+                    return new Licencia(
+                        fechaExp,      
+                        costoRenov,    
+                        idActivo,      
+                        nombre, marca,         
+                        "LICENCIA",    
+                        estado, costo, custodioAux
+                    );
+            
+            case "Periférico Genérico": 
+                return new Periferico(anniosUso, "USB / Genérico", idActivo, nombre, marca, "PERIFERICO", costo, estado, custodioAux);
 
-            case "Periferico":
-                String tipoConexion = "USB / Generico"; 
-                return new Periferico(anniosUso, tipoConexion, idActivo, nombre, marca, tipo, costo, estado, custodioAux);
+            case "Hardware Genérico":
+                default:
+                    return new Hardware(anniosUso, idActivo, nombre, marca, "HARDWARE", costo, estado, custodioAux);
+            }    
 
-            case "Licencia":
-                Date fechaExpiracionPorDefecto = new Date();
-                double costoRenovacion = 0.0;
-                double costoMantenimiento = 0.0;
-
-                return new Licencia(
-                    fechaExpiracionPorDefecto, 
-                    costoRenovacion, 
-                    idActivo, 
-                    nombre, 
-                    marca, 
-                    tipo, 
-                    costoMantenimiento, 
-                    estado, 
-                    costo, 
-                    custodioAux
-                );
-
-            default:
-                return new Hardware(anniosUso, idActivo, nombre, marca, tipo, costo, estado, custodioAux);
+        } catch (NumberFormatException e) {
+            JOptionPane.showMessageDialog(this, "Asegúrate de ingresar valores numéricos válidos en costos, años de uso e IDs.", 
+                "Error de Formato", JOptionPane.ERROR_MESSAGE);
+            return null;
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, 
+                "Error al construir el activo:" + e.getMessage(), 
+                "Error", JOptionPane.ERROR_MESSAGE);
+            return null;
         }
-
-    } catch (NumberFormatException e) {
-        JOptionPane.showMessageDialog(this, "El costo o los años de uso e ID de Custodio deben ser valores numéricos válidos.", 
-        "Error de Formato", JOptionPane.ERROR_MESSAGE);
-        return null;
-    } catch (Exception e) {
-        JOptionPane.showMessageDialog(this, 
-            "Error insospechado al construir el activo: " + e.getMessage(), 
-            "Error", JOptionPane.ERROR_MESSAGE);
-        return null;
     }
+    
+    // --- MÉTODOS DE LIMPIEZA DE FORMULARIOS ---
+    public void limpiarFormularioActivo() {
+        txtIdActivo.setText("");
+        txtNombreActivo.setText("");
+        txtMarcaActivo.setText("");
+        txtCostoActivo.setText("");
+        txtEstadoActivo.setText("");
+        txtAnniosUsoActivo.setText("0");
+        txtIdCustodioActivo.setText("");
+
+        // Campos dinámicos
+        txtProcesador.setText("");
+        txtRam.setText("");
+        txtAlmacenamiento.setText("");
+        txtResolucion.setText("");
+        txtTasaRefresco.setText("");
+        txtConexionMonitor.setText("HDMI/DisplayPort");
+        txtDpi.setText("");
+        txtConexionMouse.setText("USB/Inalámbrico");
+        txtFechaExpiracion.setText("yyyy-MM-dd");
+        txtCostoRenovacion.setText("0.0");
+
+        tablaActivos.clearSelection();
+    }
+
+    public void limpiarFormularioCustodio() {
+        txtIdCustodio.setText("");
+        txtCedulaCustodio.setText("");
+        txtNombreCustodio.setText("");
+        txtApellidoCustodio.setText("");
+        txtRolCustodio.setText("");
+        tablaCustodios.clearSelection();
+    }
+
+    public void limpiarFormularioUsuario() {
+        txtIdUsuario.setText("");
+        txtIdCustodioUsuario.setText("");
+        tablaUsuarios.clearSelection();
+    }
+
+    public void limpiarFormularioMantenimiento() {
+        txtIdMantenimiento.setText("");
+        txtDetallesMantenimiento.setText("");
+        txtFechaInicioMantenimiento.setText("");
+        txtFechaFinMantenimiento.setText("");
+        txtCostoMantenimiento.setText("");
+        txtIdActivoMantenimiento.setText("");
+        txtIdUsuarioMantenimiento.setText("");
+        tablaMantenimientos.clearSelection();
     }
     
     public void cargarFormularioActivoDesdeTabla() {
@@ -363,7 +581,7 @@ public class Vista extends JFrame {
         txtIdActivo.setText(tablaActivos.getValueAt(fila, 0).toString());
         txtNombreActivo.setText(tablaActivos.getValueAt(fila, 1).toString());
         txtMarcaActivo.setText(tablaActivos.getValueAt(fila, 2).toString());
-        cbTipoActivo.setSelectedItem(tablaActivos.getValueAt(fila, 3).toString());
+        cbSubtipoActivo.setSelectedItem(tablaActivos.getValueAt(fila, 3).toString());
         txtCostoActivo.setText(tablaActivos.getValueAt(fila, 4).toString());
         txtEstadoActivo.setText(tablaActivos.getValueAt(fila, 5).toString());
         
@@ -374,6 +592,17 @@ public class Vista extends JFrame {
 }
     
     // --- ACTIVOS ---
+    public void cargarFormularioCustodioDesdeTabla() {
+        int fila = tablaCustodios.getSelectedRow();
+        if (fila != -1) {
+            txtIdCustodio.setText(tablaCustodios.getValueAt(fila, 0).toString());
+            txtCedulaCustodio.setText(tablaCustodios.getValueAt(fila, 1).toString());
+            txtNombreCustodio.setText(tablaCustodios.getValueAt(fila, 2).toString());
+            txtApellidoCustodio.setText(tablaCustodios.getValueAt(fila, 3).toString());
+            txtRolCustodio.setText(tablaCustodios.getValueAt(fila, 4).toString());
+        }
+    }
+    
     public String obtenerIdActivoSeleccionado() {
         int fila = tablaActivos.getSelectedRow();
         return (fila != -1) ? tablaActivos.getValueAt(fila, 0).toString() : null;
@@ -401,7 +630,11 @@ public class Vista extends JFrame {
     
     public Custodio obtenerDatosCustodio() {
         try {
-            String idCustodio = txtIdCustodio.getText().trim(); // Clave primaria
+            int idCustodio = 0;
+            if (!txtIdCustodio.getText().trim().isEmpty()) {
+            idCustodio = Integer.parseInt(txtIdCustodio.getText().trim());
+            }
+            
             String cedula = txtCedulaCustodio.getText().trim();
             String nombre = txtNombreCustodio.getText().trim();
             String apellido = txtApellidoCustodio.getText().trim();
@@ -409,13 +642,23 @@ public class Vista extends JFrame {
 
             if (cedula.isEmpty() || nombre.isEmpty()) return null;
 
-            return new Custodio(0, cedula, nombre, apellido, rol);
+            return new Custodio(idCustodio, cedula, nombre, apellido, rol);
         } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, "El ID del custodio debe ser un número entero válido.", 
+            "Error de Formato", JOptionPane.ERROR_MESSAGE);
             return null;
         }
     }
     
-    // --- USUARIOS ---  
+    // --- USUARIOS ---
+    public void cargarFormularioUsuarioDesdeTabla() {
+        int fila = tablaUsuarios.getSelectedRow();
+        if (fila != -1) {
+            txtIdUsuario.setText(tablaUsuarios.getValueAt(fila, 0).toString());
+            txtIdCustodioUsuario.setText(tablaUsuarios.getValueAt(fila, 1).toString());
+        }
+    }
+    
     public String obtenerIdUsuarioSeleccionado() {
         int fila = tablaUsuarios.getSelectedRow();
         return (fila != -1) ? tablaUsuarios.getValueAt(fila, 0).toString() : null;
@@ -450,6 +693,22 @@ public class Vista extends JFrame {
     }
     
     // --- MANTENIMIENTOS ---
+    public void cargarFormularioMantenimientoDesdeTabla() {
+        int fila = tablaMantenimientos.getSelectedRow();
+        if (fila != -1) {
+            txtIdMantenimiento.setText(tablaMantenimientos.getValueAt(fila, 0).toString());
+            txtDetallesMantenimiento.setText(tablaMantenimientos.getValueAt(fila, 1).toString());
+        
+            Object fInicio = tablaMantenimientos.getValueAt(fila, 2);
+            txtFechaInicioMantenimiento.setText(fInicio != null ? fInicio.toString() : "");
+        
+            Object fFin = tablaMantenimientos.getValueAt(fila, 3);
+            txtFechaFinMantenimiento.setText(fFin != null ? fFin.toString() : "");
+        
+            txtCostoMantenimiento.setText(tablaMantenimientos.getValueAt(fila, 4).toString());
+        }
+    }
+    
     public String obtenerIdMantenimientoSeleccionado() {
         int fila = tablaMantenimientos.getSelectedRow();
         return (fila != -1) ? tablaMantenimientos.getValueAt(fila, 0).toString() : null;
