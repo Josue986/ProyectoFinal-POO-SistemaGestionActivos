@@ -12,6 +12,8 @@ import java.awt.event.ActionListener;
 import javax.swing.JOptionPane;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.util.ArrayList;
+import java.util.List;
 
 public class InventarioControlador implements ActionListener, CalcularMantenimiento {
 
@@ -194,6 +196,60 @@ public class InventarioControlador implements ActionListener, CalcularMantenimie
         } else {
             JOptionPane.showMessageDialog(vista, "Error al registrar el mantenimiento");
         }
+    }
+    
+    public void listarVistaGlobal() {
+        List<Object[]> datosGlobales = new ArrayList<>();
+
+        // 1. Añadir Activos reales (excluyendo registros fantasmas si los hubiera)
+        if (activoDAO != null && activoDAO.obtenerTodos() != null) {
+            for (Activo a : activoDAO.obtenerTodos()) {
+                String custodioNom = (a.getCustodio() != null) ? a.getCustodio().getNombre() + " " + a.getCustodio().getApellido() : "Sin Custodio";
+                datosGlobales.add(new Object[]{
+                    a.getIdActivo(),
+                    "Activo (" + a.getTipoActivo() + ")",
+                    a.getNombreActivo(),
+                    a.getMarca(),
+                    a.getCostoAdquisicion(),
+                    a.getEstadoActivo(),
+                    custodioNom
+                });
+            }
+        }
+
+        // 2. Añadir Custodios
+        if (custodioDAO != null && custodioDAO.obtenerTodos() != null) {
+            for (Custodio c : custodioDAO.obtenerTodos()) {
+                datosGlobales.add(new Object[]{
+                    c.getIdCustodio(),
+                    "Custodio",
+                    c.getNombre() + " " + c.getApellido(),
+                    "Cédula: " + c.getCedula(),
+                    "N/A",
+                    c.getRol(),
+                    "N/A"
+                });
+            }
+        }
+
+        // 3. Añadir Mantenimientos
+        if (regMantenimientoDAO != null && regMantenimientoDAO.obtenerTodos() != null) {
+            for (RegMantenimiento rm : regMantenimientoDAO.obtenerTodos()) {
+                String nomActivo = (rm.getActivo() != null) ? rm.getActivo().getNombreActivo() : "N/A";
+                datosGlobales.add(new Object[]{
+                    rm.getIdMantenimiento(),
+                    "Mantenimiento",
+                    rm.getDetallesMantenimiento(),
+                    "Inicio: " + rm.getFechaInicio(),
+                    rm.getCostoMantenimiento(),
+                    "Registrado",
+                    "Activo: " + nomActivo
+                });
+            }
+        }
+
+        // Enviamos los datos consolidados a la vista
+        vista.mostrarVistaGlobal(datosGlobales);
     }
 
     public void listarRegMantenimientos() {
