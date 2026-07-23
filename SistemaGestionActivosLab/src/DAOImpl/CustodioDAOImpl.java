@@ -1,4 +1,4 @@
-/*
+ /*
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
@@ -37,24 +37,26 @@ public class CustodioDAOImpl implements CustodioDAO {
             return false;
         }}
 
-    @Override public boolean actualizar(Custodio custodio) {// Actualiza la información del custodio basada en su cédula o id
-        String sql = "UPDATE sistema_activos SET nombreCustodio = ?, apellidoCustodio = ?, rolCustodio = ? WHERE cedulaCustodio = ?";
+    @Override public boolean actualizar(Custodio custodio) {
+        String sql = "UPDATE sistema_activos SET cedulaCustodio = ?, nombreCustodio = ?, apellidoCustodio = ?, rolCustodio = ? WHERE idRegistro = ?";
 
         try (Connection conn = ConexionSQLite.conectar();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             if (conn == null || custodio == null) return false;
 
-            stmt.setString(1, custodio.getNombre());
-            stmt.setString(2, custodio.getApellido());
-            stmt.setString(3, custodio.getRol());
-            stmt.setString(4, custodio.getCedula());
+            stmt.setString(1, custodio.getCedula());
+            stmt.setString(2, custodio.getNombre());
+            stmt.setString(3, custodio.getApellido());
+            stmt.setString(4, custodio.getRol());
+            stmt.setInt(5, custodio.getIdCustodio()); // Apunta al idRegistro exacto de la fila
 
             return stmt.executeUpdate() > 0;
         } catch (SQLException e) {
             e.printStackTrace();
             return false;
-        }}
+        }
+    }
 
     @Override public boolean eliminar(int idCustodio) {
         // Desvincula los datos del custodio dejando los campos en NULL

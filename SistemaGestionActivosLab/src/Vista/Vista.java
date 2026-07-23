@@ -7,7 +7,6 @@ import java.awt.*;
 import java.util.List;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import DAOImpl.CustodioDAOImpl;
 import java.awt.event.ActionListener;
 
 public class Vista extends JFrame {
@@ -472,13 +471,8 @@ public class Vista extends JFrame {
             if (!txtIdCustodioActivo.getText().trim().isEmpty()) {
                 try {
                     int idCustodio = Integer.parseInt(txtIdCustodioActivo.getText().trim());
-                    CustodioDAOImpl custodioDao = new CustodioDAOImpl();
-                    custodioAux = custodioDao.obtenerPorId(idCustodio);
-
-                    if (custodioAux == null) {
-                        JOptionPane.showMessageDialog(this, "El ID de custodio ingresado no existe en la base de datos.", "Custodio no encontrado", JOptionPane.WARNING_MESSAGE);
-                        return null;
-                    }
+                    custodioAux = new Custodio();
+                    custodioAux.setIdCustodio(idCustodio); // Solo guardamos el ID, el Controlador o el DAO se encargan del resto
                 } catch (NumberFormatException e) {
                     JOptionPane.showMessageDialog(this, "El ID del custodio debe ser un número entero.", "Error", JOptionPane.ERROR_MESSAGE);
                     return null;
