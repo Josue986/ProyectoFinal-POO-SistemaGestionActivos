@@ -21,7 +21,7 @@ public class RegMantenimientoDAOImpl implements RegMantenimientoDAO {
 
     @Override
     public boolean guardar(RegMantenimiento reg) {
-        String sql = "UPDATE sistema_activos SET detallesMantenimiento = ?, fechaInicio = ?, fechaFin = ?, costoMantenimiento = ? WHERE idRegistro = ?";
+        String sql = "UPDATE sistema_activos SET detallesMantenimiento = ?, fechaInicioMantenimiento = ?, fechaFinMantenimiento = ?, costoMantenimiento = ? WHERE idRegistro = ?";
 
         try (Connection conn = ConexionSQLite.conectar();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -43,7 +43,7 @@ public class RegMantenimientoDAOImpl implements RegMantenimientoDAO {
 
     @Override
     public boolean actualizar(RegMantenimiento reg) {
-        String sql = "UPDATE sistema_activos SET detallesMantenimiento = ?, fechaInicio = ?, fechaFin = ?, costoMantenimiento = ? WHERE idRegistro = ?";
+        String sql = "UPDATE sistema_activos SET detallesMantenimiento = ?, fechaInicioMantenimiento = ?, fechaFinMantenimiento = ?, costoMantenimiento = ? WHERE idRegistro = ?";
 
         try (Connection conn = ConexionSQLite.conectar();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -65,7 +65,7 @@ public class RegMantenimientoDAOImpl implements RegMantenimientoDAO {
 
     @Override
     public boolean eliminar(int idMantenimiento) {
-        String sql = "UPDATE sistema_activos SET detallesMantenimiento = NULL, fechaInicio = NULL, fechaFin = NULL, costoMantenimiento = 0.0 WHERE idRegistro = ?";
+        String sql = "UPDATE sistema_activos SET detallesMantenimiento = NULL, fechaInicioMantenimiento = NULL, fechaFinMantenimiento = NULL, costoMantenimiento = 0.0 WHERE idRegistro = ?";
 
         try (Connection conn = ConexionSQLite.conectar();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -124,6 +124,28 @@ public class RegMantenimientoDAOImpl implements RegMantenimientoDAO {
         }
         return lista;
     }
+    
+    @Override
+    public RegMantenimiento obtenerPorId(int idMantenimiento) {
+        RegMantenimiento reg = null;
+        String sql = "SELECT * FROM sistema_activos WHERE idRegistro = ? AND detallesMantenimiento IS NOT NULL AND detallesMantenimiento != ''";
+
+        try (Connection conn = ConexionSQLite.conectar();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            if (conn == null) return null;
+
+            stmt.setInt(1, idMantenimiento);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    reg = mapearMantenimiento(rs);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return reg;
+    }
 
     // Auxiliar para parsear las fechas y construir el objeto con su constructor
     private RegMantenimiento mapearMantenimiento(ResultSet rs) {
@@ -131,8 +153,8 @@ public class RegMantenimientoDAOImpl implements RegMantenimientoDAO {
             int idActivo = rs.getInt("idRegistro");
             String detalles = rs.getString("detallesMantenimiento");
 
-            String fInicioStr = rs.getString("fechaInicio");
-            String fFinStr = rs.getString("fechaFin");
+            String fInicioStr = rs.getString("fechaInicioMantenimiento");
+            String fFinStr = rs.getString("fechaFinMantenimiento");
             java.util.Date fInicio = (fInicioStr != null && !fInicioStr.trim().isEmpty()) ? dateFormat.parse(fInicioStr) : null;
             java.util.Date fFin = (fFinStr != null && !fFinStr.trim().isEmpty()) ? dateFormat.parse(fFinStr) : null;
 

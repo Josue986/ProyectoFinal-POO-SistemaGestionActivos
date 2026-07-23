@@ -10,12 +10,11 @@ import java.util.Date;
 import DAOImpl.CustodioDAOImpl;
 import java.awt.event.ActionListener;
 
-
 public class Vista extends JFrame {
-    
+
     //--- Pestaña Global (Tabla Unificada Central) ----
     public javax.swing.JTable tablaVistaGlobal;
-    public javax.swing.table.DefaultTableModel modeloTablaGlobal;   
+    public javax.swing.table.DefaultTableModel modeloTablaGlobal;
 
     //--- Pestaña 1: ACTIVOS ----
     public JTextField txtIdActivo, txtNombreActivo, txtMarcaActivo, txtCostoActivo, txtEstadoActivo, txtIdCustodioActivo, txtAnniosUsoActivo;
@@ -56,7 +55,7 @@ public class Vista extends JFrame {
         setLocationRelativeTo(null);
 
         JTabbedPane panelPestañas = new JTabbedPane();
-        
+
         panelPestañas.addTab("Vista Global / Consolidada", crearPanelVistaGlobal());
         panelPestañas.addTab("Activos", crearPanelActivos());
         panelPestañas.addTab("Custodios", crearPanelCustodios());
@@ -65,11 +64,11 @@ public class Vista extends JFrame {
 
         this.add(panelPestañas);
     }
-    
+
     // PANEL VISTA GLOBAL | CONSOLIDADA
     private JPanel crearPanelVistaGlobal() {
         JPanel panel = new JPanel(new BorderLayout());
-        
+
         JPanel panelSuperior = new JPanel(new FlowLayout(FlowLayout.LEFT));
         panelSuperior.setBorder(BorderFactory.createTitledBorder("Información Consolidada de la Tabla Unificada"));
         panelSuperior.add(new JLabel("Aquí se visualizan todos los registros activos del sistema de manera centralizada."));
@@ -88,7 +87,7 @@ public class Vista extends JFrame {
     //  PANEL ACTIVOS | CONSTRUCCIÓN DE PANELES (UI) DINÁMICO CON CARDLAYOUT
     private JPanel crearPanelActivos() {
         JPanel panel = new JPanel(new BorderLayout());
-
+        
         JPanel panelForm = new JPanel(new GridLayout(8, 2, 5, 5));
         panelForm.setBorder(BorderFactory.createTitledBorder("Datos Generales del Activo"));
 
@@ -139,11 +138,12 @@ public class Vista extends JFrame {
         panelCustodioAux.add(new JLabel("ID Custodio Asociado:"));
         panelCustodioAux.add(txtIdCustodioActivo);
         txtIdCustodioActivo.setPreferredSize(new Dimension(100, 25));
-
-        JPanel panelFormularioCompleto = new JPanel(new BorderLayout());
-        panelFormularioCompleto.add(panelForm, BorderLayout.NORTH);
-        panelFormularioCompleto.add(panelFormularioDinamico, BorderLayout.CENTER);
-        panelFormularioCompleto.add(panelCustodioAux, BorderLayout.SOUTH);
+        
+        JPanel panelArriba = new JPanel();
+        panelArriba.setLayout(new BoxLayout(panelArriba, BoxLayout.Y_AXIS));
+        panelArriba.add(panelForm);
+        panelArriba.add(panelFormularioDinamico);
+        panelArriba.add(panelCustodioAux); 
 
         JPanel panelBotones = new JPanel();
         btnGuardarActivo = new JButton("Guardar");
@@ -153,8 +153,9 @@ public class Vista extends JFrame {
         panelBotones.add(btnGuardarActivo);
         panelBotones.add(btnActualizarActivo);
         panelBotones.add(btnEliminarActivo);
-
-        panel.add(panelFormularioCompleto, BorderLayout.CENTER);
+        
+        panel.add(panelArriba, BorderLayout.NORTH);
+        panel.add(new JPanel(), BorderLayout.CENTER);
         panel.add(panelBotones, BorderLayout.SOUTH);
 
         actualizarSubtipos();
@@ -167,13 +168,23 @@ public class Vista extends JFrame {
         txtProcesador = new JTextField();
         txtRam = new JTextField();
         txtAlmacenamiento = new JTextField();
+
+        // (Puedes dejar o quitar los setPreferredSize que pusimos antes, 
+        // con el paso de abajo ya no son estrictamente necesarios)
         p.add(new JLabel("Procesador:"));
         p.add(txtProcesador);
         p.add(new JLabel("Memoria RAM:"));
         p.add(txtRam);
         p.add(new JLabel("Almacenamiento:"));
         p.add(txtAlmacenamiento);
-        return p;
+
+        // --- NUEVO CÓDIGO AQUÍ ---
+        // Envolvemos el grid en un nuevo panel alineado al NORTE (arriba)
+        JPanel panelContenedor = new JPanel(new BorderLayout());
+        panelContenedor.add(p, BorderLayout.NORTH);
+
+        // Retornamos el contenedor en lugar de 'p'
+        return panelContenedor;
     }
 
     private JPanel crearPanelHardwareGen() {
@@ -184,27 +195,40 @@ public class Vista extends JFrame {
 
     private JPanel crearPanelMonitor() {
         JPanel p = new JPanel(new GridLayout(3, 2, 5, 5));
-        txtResolucion = new JTextField();
-        txtTasaRefresco = new JTextField();
-        txtConexionMonitor = new JTextField("HDMI/DisplayPort");
-        p.add(new JLabel("Resolución:"));
-        p.add(txtResolucion);
-        p.add(new JLabel("Tasa de Refresco:"));
-        p.add(txtTasaRefresco);
-        p.add(new JLabel("Tipo de Conexión:"));
-        p.add(txtConexionMonitor);
-        return p;
+    txtResolucion = new JTextField();
+    txtTasaRefresco = new JTextField();
+    txtConexionMonitor = new JTextField("HDMI/DisplayPort");
+
+    p.add(new JLabel("Resolución:"));
+    p.add(txtResolucion);
+    p.add(new JLabel("Tasa de Refresco:"));
+    p.add(txtTasaRefresco);
+    p.add(new JLabel("Tipo de Conexión:"));
+    p.add(txtConexionMonitor);
+
+    JPanel panelContenedor = new JPanel(new BorderLayout());
+    panelContenedor.add(p, BorderLayout.NORTH);
+    
+    return panelContenedor;
     }
 
     private JPanel crearPanelMouse() {
         JPanel p = new JPanel(new GridLayout(2, 2, 5, 5));
         txtDpi = new JTextField();
         txtConexionMouse = new JTextField("USB/Inalámbrico");
+
+        txtDpi.setPreferredSize(new Dimension(300, 28));
+        txtDpi.setMaximumSize(new Dimension(Integer.MAX_VALUE, 28));
+        txtConexionMouse.setPreferredSize(new Dimension(300, 28));
+        txtConexionMouse.setMaximumSize(new Dimension(Integer.MAX_VALUE, 28));
+
         p.add(new JLabel("DPI:"));
         p.add(txtDpi);
         p.add(new JLabel("Tipo de Conexión:"));
         p.add(txtConexionMouse);
-        return p;
+        JPanel panelContenedor = new JPanel(new BorderLayout());
+        panelContenedor.add(p, BorderLayout.NORTH);
+        return panelContenedor;
     }
 
     private JPanel crearPanelPerifericoGen() {
@@ -217,11 +241,19 @@ public class Vista extends JFrame {
         JPanel p = new JPanel(new GridLayout(2, 2, 5, 5));
         txtFechaExpiracion = new JTextField("yyyy-MM-dd");
         txtCostoRenovacion = new JTextField("0.0");
+
+        txtFechaExpiracion.setPreferredSize(new Dimension(300, 28));
+        txtFechaExpiracion.setMaximumSize(new Dimension(Integer.MAX_VALUE, 28));
+        txtCostoRenovacion.setPreferredSize(new Dimension(300, 28));
+        txtCostoRenovacion.setMaximumSize(new Dimension(Integer.MAX_VALUE, 28));
+
         p.add(new JLabel("Fecha Expiración:"));
         p.add(txtFechaExpiracion);
         p.add(new JLabel("Costo Renovación ($):"));
         p.add(txtCostoRenovacion);
-        return p;
+        JPanel panelContenedor = new JPanel(new BorderLayout());
+        panelContenedor.add(p, BorderLayout.NORTH);
+        return panelContenedor;
     }
 
     // Lógica de actualización de Cascada / CardLayout
@@ -243,15 +275,29 @@ public class Vista extends JFrame {
 
     private void cambiarPanelEspecifico() {
         String subtipo = (String) cbSubtipoActivo.getSelectedItem();
-        if (subtipo == null) return;
+        if (subtipo == null) {
+            return;
+        }
 
         switch (subtipo) {
-            case "CPU": cardLayoutEspecifico.show(panelFormularioDinamico, "CPU"); break;
-            case "Hardware Genérico": cardLayoutEspecifico.show(panelFormularioDinamico, "HARDWARE_GENERICO"); break;
-            case "Monitor": cardLayoutEspecifico.show(panelFormularioDinamico, "MONITOR"); break;
-            case "Mouse": cardLayoutEspecifico.show(panelFormularioDinamico, "MOUSE"); break;
-            case "Periférico Genérico": cardLayoutEspecifico.show(panelFormularioDinamico, "PERIFERICO_GENERICO"); break;
-            case "Licencia de Software": cardLayoutEspecifico.show(panelFormularioDinamico, "LICENCIA"); break;
+            case "CPU":
+                cardLayoutEspecifico.show(panelFormularioDinamico, "CPU");
+                break;
+            case "Hardware Genérico":
+                cardLayoutEspecifico.show(panelFormularioDinamico, "HARDWARE_GENERICO");
+                break;
+            case "Monitor":
+                cardLayoutEspecifico.show(panelFormularioDinamico, "MONITOR");
+                break;
+            case "Mouse":
+                cardLayoutEspecifico.show(panelFormularioDinamico, "MOUSE");
+                break;
+            case "Periférico Genérico":
+                cardLayoutEspecifico.show(panelFormularioDinamico, "PERIFERICO_GENERICO");
+                break;
+            case "Licencia de Software":
+                cardLayoutEspecifico.show(panelFormularioDinamico, "LICENCIA");
+                break;
         }
     }
 
@@ -280,6 +326,10 @@ public class Vista extends JFrame {
         panelForm.add(new JLabel("Rol:"));
         panelForm.add(txtRolCustodio);
 
+        JPanel panelContenedorForm = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        panelForm.setPreferredSize(new Dimension(600, 220));
+        panelContenedorForm.add(panelForm);
+
         JPanel panelBotones = new JPanel();
         btnGuardarCustodio = new JButton("Guardar");
         btnActualizarCustodio = new JButton("Actualizar");
@@ -289,7 +339,7 @@ public class Vista extends JFrame {
         panelBotones.add(btnActualizarCustodio);
         panelBotones.add(btnEliminarCustodio);
 
-        panel.add(panelForm, BorderLayout.CENTER);
+        panel.add(panelContenedorForm, BorderLayout.CENTER);
         panel.add(panelBotones, BorderLayout.SOUTH);
 
         return panel;
@@ -311,6 +361,10 @@ public class Vista extends JFrame {
         panelForm.add(new JLabel("ID Custodio Asociado:"));
         panelForm.add(txtIdCustodioUsuario);
 
+        JPanel panelContenedorForm = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        panelForm.setPreferredSize(new Dimension(600, 120));
+        panelContenedorForm.add(panelForm);
+
         JPanel panelBotones = new JPanel();
         btnGuardarUsuario = new JButton("Guardar");
         btnActualizarUsuario = new JButton("Actualizar");
@@ -320,7 +374,7 @@ public class Vista extends JFrame {
         panelBotones.add(btnActualizarUsuario);
         panelBotones.add(btnEliminarUsuario);
 
-        panel.add(panelForm, BorderLayout.CENTER);
+        panel.add(panelContenedorForm, BorderLayout.CENTER);
         panel.add(panelBotones, BorderLayout.SOUTH);
 
         return panel;
@@ -357,6 +411,10 @@ public class Vista extends JFrame {
         panelForm.add(new JLabel("ID Usuario:"));
         panelForm.add(txtIdUsuarioMantenimiento);
 
+        JPanel panelContenedorForm = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        panelForm.setPreferredSize(new Dimension(650, 280));
+        panelContenedorForm.add(panelForm);
+
         JPanel panelBotones = new JPanel();
         btnGuardarMantenimiento = new JButton("Guardar");
         btnActualizarMantenimiento = new JButton("Actualizar");
@@ -368,7 +426,7 @@ public class Vista extends JFrame {
         panelBotones.add(btnEliminarMantenimiento);
         panelBotones.add(btnFiltrarMantenimientoActivo);
 
-        panel.add(panelForm, BorderLayout.CENTER);
+        panel.add(panelContenedorForm, BorderLayout.CENTER);
         panel.add(panelBotones, BorderLayout.SOUTH);
 
         return panel;
@@ -384,7 +442,7 @@ public class Vista extends JFrame {
             }
         }
     }
-    
+
     // --- ACTIVOS ---
     public Activo obtenerDatosFormulario() {
         try {
@@ -511,7 +569,9 @@ public class Vista extends JFrame {
     }
 
     public void cargarFormularioActivoDesdeTabla(Activo activoSeleccionado) {
-        if (activoSeleccionado == null) return;
+        if (activoSeleccionado == null) {
+            return;
+        }
 
         txtIdActivo.setText(String.valueOf(activoSeleccionado.getIdActivo()));
         txtNombreActivo.setText(activoSeleccionado.getNombreActivo());
@@ -537,9 +597,13 @@ public class Vista extends JFrame {
         if (tipo != null) {
             ActionListener[] listenersCategoria = cbCategoriaActivo.getActionListeners();
             ActionListener[] listenersSubtipo = cbSubtipoActivo.getActionListeners();
-            
-            for (ActionListener al : listenersCategoria) cbCategoriaActivo.removeActionListener(al);
-            for (ActionListener al : listenersSubtipo) cbSubtipoActivo.removeActionListener(al);
+
+            for (ActionListener al : listenersCategoria) {
+                cbCategoriaActivo.removeActionListener(al);
+            }
+            for (ActionListener al : listenersSubtipo) {
+                cbSubtipoActivo.removeActionListener(al);
+            }
 
             if (tipo.equals("CPU") || tipo.equals("HARDWARE")) {
                 cbCategoriaActivo.setSelectedItem("Hardware");
@@ -548,40 +612,68 @@ public class Vista extends JFrame {
             } else if (tipo.equals("MONITOR") || tipo.equals("MOUSE") || tipo.equals("PERIFERICO")) {
                 cbCategoriaActivo.setSelectedItem("Periférico");
                 actualizarSubtiposManual("Periférico");
-                if (tipo.equals("MONITOR")) cbSubtipoActivo.setSelectedItem("Monitor");
-                else if (tipo.equals("MOUSE")) cbSubtipoActivo.setSelectedItem("Mouse");
-                else cbSubtipoActivo.setSelectedItem("Periférico Genérico");
+                if (tipo.equals("MONITOR")) {
+                    cbSubtipoActivo.setSelectedItem("Monitor");
+                } else if (tipo.equals("MOUSE")) {
+                    cbSubtipoActivo.setSelectedItem("Mouse");
+                } else {
+                    cbSubtipoActivo.setSelectedItem("Periférico Genérico");
+                }
             } else if (tipo.equals("LICENCIA")) {
                 cbCategoriaActivo.setSelectedItem("Licencia");
                 actualizarSubtiposManual("Licencia");
                 cbSubtipoActivo.setSelectedItem("Licencia de Software");
             }
 
-            for (ActionListener al : listenersCategoria) cbCategoriaActivo.addActionListener(al);
-            for (ActionListener al : listenersSubtipo) cbSubtipoActivo.addActionListener(al);
+            for (ActionListener al : listenersCategoria) {
+                cbCategoriaActivo.addActionListener(al);
+            }
+            for (ActionListener al : listenersSubtipo) {
+                cbSubtipoActivo.addActionListener(al);
+            }
         }
 
         cambiarPanelEspecifico();
 
         if (activoSeleccionado instanceof Cpu) {
             Cpu cpu = (Cpu) activoSeleccionado;
-            if (txtProcesador != null) txtProcesador.setText(cpu.getProcesador() != null ? cpu.getProcesador() : "");
-            if (txtRam != null) txtRam.setText(cpu.getMemoriaRAM() != null ? cpu.getMemoriaRAM() : "");
-            if (txtAlmacenamiento != null) txtAlmacenamiento.setText(cpu.getAlmacenamiento() != null ? cpu.getAlmacenamiento() : "");
+            if (txtProcesador != null) {
+                txtProcesador.setText(cpu.getProcesador() != null ? cpu.getProcesador() : "");
+            }
+            if (txtRam != null) {
+                txtRam.setText(cpu.getMemoriaRAM() != null ? cpu.getMemoriaRAM() : "");
+            }
+            if (txtAlmacenamiento != null) {
+                txtAlmacenamiento.setText(cpu.getAlmacenamiento() != null ? cpu.getAlmacenamiento() : "");
+            }
         } else if (activoSeleccionado instanceof Monitor) {
             Monitor mon = (Monitor) activoSeleccionado;
-            if (txtResolucion != null) txtResolucion.setText(mon.getResolucion() != null ? mon.getResolucion() : "");
-            if (txtTasaRefresco != null) txtTasaRefresco.setText(mon.getTasaDeRefresco() != null ? mon.getTasaDeRefresco() : "");
-            if (txtConexionMonitor != null) txtConexionMonitor.setText(mon.getTipoConexion() != null ? mon.getTipoConexion() : "");
+            if (txtResolucion != null) {
+                txtResolucion.setText(mon.getResolucion() != null ? mon.getResolucion() : "");
+            }
+            if (txtTasaRefresco != null) {
+                txtTasaRefresco.setText(mon.getTasaDeRefresco() != null ? mon.getTasaDeRefresco() : "");
+            }
+            if (txtConexionMonitor != null) {
+                txtConexionMonitor.setText(mon.getTipoConexion() != null ? mon.getTipoConexion() : "");
+            }
         } else if (activoSeleccionado instanceof Mouse) {
             Mouse mouse = (Mouse) activoSeleccionado;
-            if (txtDpi != null) txtDpi.setText(mouse.getDpi() != null ? mouse.getDpi() : "");
-            if (txtConexionMouse != null) txtConexionMouse.setText(mouse.getTipoConexion() != null ? mouse.getTipoConexion() : "");
+            if (txtDpi != null) {
+                txtDpi.setText(mouse.getDpi() != null ? mouse.getDpi() : "");
+            }
+            if (txtConexionMouse != null) {
+                txtConexionMouse.setText(mouse.getTipoConexion() != null ? mouse.getTipoConexion() : "");
+            }
         } else if (activoSeleccionado instanceof Licencia) {
             Licencia lic = (Licencia) activoSeleccionado;
             SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-            if (txtFechaExpiracion != null) txtFechaExpiracion.setText(lic.getFechaExpiracion() != null ? sdf.format(lic.getFechaExpiracion()) : "");
-            if (txtCostoRenovacion != null) txtCostoRenovacion.setText(String.valueOf(lic.getCostoRenovacion()));
+            if (txtFechaExpiracion != null) {
+                txtFechaExpiracion.setText(lic.getFechaExpiracion() != null ? sdf.format(lic.getFechaExpiracion()) : "");
+            }
+            if (txtCostoRenovacion != null) {
+                txtCostoRenovacion.setText(String.valueOf(lic.getCostoRenovacion()));
+            }
         }
     }
 
@@ -613,7 +705,9 @@ public class Vista extends JFrame {
             String apellido = txtApellidoCustodio.getText().trim();
             String rol = txtRolCustodio.getText().trim();
 
-            if (cedula.isEmpty() || nombre.isEmpty()) return null;
+            if (cedula.isEmpty() || nombre.isEmpty()) {
+                return null;
+            }
 
             return new Custodio(idCustodio, cedula, nombre, apellido, rol);
         } catch (Exception e) {
@@ -664,7 +758,7 @@ public class Vista extends JFrame {
             return null;
         }
     }
-    
+
     // OBTENCIÓN DE SELECCIÓN DESDE LA TABLA GLOBAL
     public String obtenerIdSeleccionadoGlobal() {
         int fila = tablaVistaGlobal.getSelectedRow();
