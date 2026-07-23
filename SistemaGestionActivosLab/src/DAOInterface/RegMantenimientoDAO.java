@@ -17,4 +17,5 @@ public interface RegMantenimientoDAO {
     
     // Método especializado para filtrar mantenimientos por un activo específico
     List<RegMantenimiento> obtenerRegMantenimientosActivo(int idActivo);
+    RegMantenimiento obtenerPorId(int idMantenimiento);
 }
