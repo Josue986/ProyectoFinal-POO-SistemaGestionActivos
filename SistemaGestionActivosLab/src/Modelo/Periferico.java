@@ -9,9 +9,9 @@ package Modelo;
  * @author jotue
  */
 public class Periferico extends Activo {
-    private int anniosUso;
-    private String tipoConexion;
-    private double costoMantenimiento;
+    protected int anniosUso;
+    protected String tipoConexion;
+    protected double costoMantenimiento;
 
     public Periferico() {
     }

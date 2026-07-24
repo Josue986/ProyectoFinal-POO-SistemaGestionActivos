@@ -9,8 +9,8 @@ package Modelo;
  * @author jotue
  */
 public class Hardware extends Activo {
-    private int anniosUso;
-    private double costoMantenimiento;
+    protected int anniosUso;
+    protected double costoMantenimiento;
 
     public Hardware() {
     }

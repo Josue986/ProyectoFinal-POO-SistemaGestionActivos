@@ -6,13 +6,13 @@ package Modelo;
 
 public abstract class Activo {
 
-    private int idActivo;
-    private String nombreActivo;
-    private String marca;
-    private String tipoActivo;
-    private double costoAdquisicion;
-    private String estadoActivo;
-    private Custodio custodio;
+    protected int idActivo;
+    protected String nombreActivo;
+    protected String marca;
+    protected String tipoActivo;
+    protected double costoAdquisicion;
+    protected String estadoActivo;
+    protected Custodio custodio;
 
     public Activo() {
     }
