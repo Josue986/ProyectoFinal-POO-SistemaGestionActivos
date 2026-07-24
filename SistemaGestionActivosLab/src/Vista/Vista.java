@@ -2,7 +2,6 @@ package Vista;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
-import Modelo.*;
 import java.awt.*;
 import java.util.List;
 import java.text.SimpleDateFormat;
@@ -86,7 +85,7 @@ public class Vista extends JFrame {
     //  PANEL ACTIVOS | CONSTRUCCIÓN DE PANELES (UI) DINÁMICO CON CARDLAYOUT
     private JPanel crearPanelActivos() {
         JPanel panel = new JPanel(new BorderLayout());
-        
+
         JPanel panelForm = new JPanel(new GridLayout(8, 2, 5, 5));
         panelForm.setBorder(BorderFactory.createTitledBorder("Datos Generales del Activo"));
 
@@ -137,12 +136,12 @@ public class Vista extends JFrame {
         panelCustodioAux.add(new JLabel("ID Custodio Asociado:"));
         panelCustodioAux.add(txtIdCustodioActivo);
         txtIdCustodioActivo.setPreferredSize(new Dimension(100, 25));
-        
+
         JPanel panelArriba = new JPanel();
         panelArriba.setLayout(new BoxLayout(panelArriba, BoxLayout.Y_AXIS));
         panelArriba.add(panelForm);
         panelArriba.add(panelFormularioDinamico);
-        panelArriba.add(panelCustodioAux); 
+        panelArriba.add(panelCustodioAux);
 
         JPanel panelBotones = new JPanel();
         btnGuardarActivo = new JButton("Guardar");
@@ -152,7 +151,7 @@ public class Vista extends JFrame {
         panelBotones.add(btnGuardarActivo);
         panelBotones.add(btnActualizarActivo);
         panelBotones.add(btnEliminarActivo);
-        
+
         panel.add(panelArriba, BorderLayout.NORTH);
         panel.add(new JPanel(), BorderLayout.CENTER);
         panel.add(panelBotones, BorderLayout.SOUTH);
@@ -194,21 +193,21 @@ public class Vista extends JFrame {
 
     private JPanel crearPanelMonitor() {
         JPanel p = new JPanel(new GridLayout(3, 2, 5, 5));
-    txtResolucion = new JTextField();
-    txtTasaRefresco = new JTextField();
-    txtConexionMonitor = new JTextField("HDMI/DisplayPort");
+        txtResolucion = new JTextField();
+        txtTasaRefresco = new JTextField();
+        txtConexionMonitor = new JTextField("HDMI/DisplayPort");
 
-    p.add(new JLabel("Resolución:"));
-    p.add(txtResolucion);
-    p.add(new JLabel("Tasa de Refresco:"));
-    p.add(txtTasaRefresco);
-    p.add(new JLabel("Tipo de Conexión:"));
-    p.add(txtConexionMonitor);
+        p.add(new JLabel("Resolución:"));
+        p.add(txtResolucion);
+        p.add(new JLabel("Tasa de Refresco:"));
+        p.add(txtTasaRefresco);
+        p.add(new JLabel("Tipo de Conexión:"));
+        p.add(txtConexionMonitor);
 
-    JPanel panelContenedor = new JPanel(new BorderLayout());
-    panelContenedor.add(p, BorderLayout.NORTH);
-    
-    return panelContenedor;
+        JPanel panelContenedor = new JPanel(new BorderLayout());
+        panelContenedor.add(p, BorderLayout.NORTH);
+
+        return panelContenedor;
     }
 
     private JPanel crearPanelMouse() {
@@ -443,7 +442,7 @@ public class Vista extends JFrame {
     }
 
     // --- ACTIVOS ---
-    public Activo obtenerDatosFormulario() {
+    public Modelo.Activo obtenerDatosFormulario() {
         try {
             int idActivo = 0;
             if (!txtIdActivo.getText().trim().isEmpty()) {
@@ -467,12 +466,12 @@ public class Vista extends JFrame {
 
             int anniosUso = txtAnniosUsoActivo.getText().trim().isEmpty() ? 0 : Integer.parseInt(txtAnniosUsoActivo.getText().trim());
 
-            Custodio custodioAux = null;
+            Modelo.Custodio custodioAux = null;
             if (!txtIdCustodioActivo.getText().trim().isEmpty()) {
                 try {
                     int idCustodio = Integer.parseInt(txtIdCustodioActivo.getText().trim());
-                    custodioAux = new Custodio();
-                    custodioAux.setIdCustodio(idCustodio); // Solo guardamos el ID, el Controlador o el DAO se encargan del resto
+                    custodioAux = new Modelo.Custodio();
+                    custodioAux.setIdCustodio(idCustodio);
                 } catch (NumberFormatException e) {
                     JOptionPane.showMessageDialog(this, "El ID del custodio debe ser un número entero.", "Error", JOptionPane.ERROR_MESSAGE);
                     return null;
@@ -481,11 +480,11 @@ public class Vista extends JFrame {
 
             switch (subtipo) {
                 case "CPU":
-                    return new Cpu(txtProcesador.getText().trim(), txtRam.getText().trim(), txtAlmacenamiento.getText().trim(), anniosUso, idActivo, nombre, marca, "CPU", costo, estado, custodioAux);
+                    return new Modelo.Cpu(txtProcesador.getText().trim(), txtRam.getText().trim(), txtAlmacenamiento.getText().trim(), anniosUso, idActivo, nombre, marca, "CPU", costo, estado, custodioAux);
                 case "Monitor":
-                    return new Monitor(txtResolucion.getText().trim(), txtTasaRefresco.getText().trim(), anniosUso, txtConexionMonitor.getText().trim(), idActivo, nombre, marca, "MONITOR", estado, costo, custodioAux);
+                    return new Modelo.Monitor(txtResolucion.getText().trim(), txtTasaRefresco.getText().trim(), anniosUso, txtConexionMonitor.getText().trim(), idActivo, nombre, marca, "MONITOR", estado, costo, custodioAux);
                 case "Mouse":
-                    return new Mouse(txtDpi.getText().trim(), anniosUso, txtConexionMouse.getText().trim(), idActivo, nombre, marca, "MOUSE", costo, estado, custodioAux);
+                    return new Modelo.Mouse(txtDpi.getText().trim(), anniosUso, txtConexionMouse.getText().trim(), idActivo, nombre, marca, "MOUSE", costo, estado, custodioAux);
                 case "Licencia de Software":
                     SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
                     Date fechaExp;
@@ -498,18 +497,18 @@ public class Vista extends JFrame {
                     if (!txtCostoRenovacion.getText().trim().isEmpty()) {
                         costoRenov = Double.parseDouble(txtCostoRenovacion.getText().trim().replace(",", "."));
                     }
-                    return new Licencia(fechaExp, costoRenov, idActivo, nombre, marca, "LICENCIA", estado, costo, custodioAux);
+                    return new Modelo.Licencia(fechaExp, costoRenov, idActivo, nombre, marca, "LICENCIA", estado, costo, custodioAux);
                 case "Periférico Genérico":
-                    return new Periferico(anniosUso, "USB / Genérico", idActivo, nombre, marca, "PERIFERICO", costo, estado, custodioAux);
+                    return new Modelo.Periferico(anniosUso, "USB / Genérico", idActivo, nombre, marca, "PERIFERICO", costo, estado, custodioAux);
                 case "Hardware Genérico":
                 default:
-                    return new Hardware(anniosUso, idActivo, nombre, marca, "HARDWARE", costo, estado, custodioAux);
+                    return new Modelo.Hardware(anniosUso, idActivo, nombre, marca, "HARDWARE", costo, estado, custodioAux);
             }
         } catch (NumberFormatException e) {
             JOptionPane.showMessageDialog(this, "Asegúrate de ingresar valores numéricos válidos en costos, años de uso e IDs.", "Error de Formato", JOptionPane.ERROR_MESSAGE);
             return null;
         } catch (Exception e) {
-            JOptionPane.showMessageDialog(this, "Error al construir el activo:" + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Error al construir el activo: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
             return null;
         }
     }
@@ -562,7 +561,7 @@ public class Vista extends JFrame {
         tablaVistaGlobal.clearSelection();
     }
 
-    public void cargarFormularioActivoDesdeTabla(Activo activoSeleccionado) {
+    public void cargarFormularioActivoDesdeTabla(Modelo.Activo activoSeleccionado) {
         if (activoSeleccionado == null) {
             return;
         }
@@ -573,10 +572,10 @@ public class Vista extends JFrame {
         txtCostoActivo.setText(String.valueOf(activoSeleccionado.getCostoAdquisicion()));
         txtEstadoActivo.setText(activoSeleccionado.getEstadoActivo());
 
-        if (activoSeleccionado instanceof Hardware) {
-            txtAnniosUsoActivo.setText(String.valueOf(((Hardware) activoSeleccionado).getAnniosUso()));
-        } else if (activoSeleccionado instanceof Periferico) {
-            txtAnniosUsoActivo.setText(String.valueOf(((Periferico) activoSeleccionado).getAnniosUso()));
+        if (activoSeleccionado instanceof Modelo.Hardware) {
+            txtAnniosUsoActivo.setText(String.valueOf(((Modelo.Hardware) activoSeleccionado).getAnniosUso()));
+        } else if (activoSeleccionado instanceof Modelo.Periferico) {
+            txtAnniosUsoActivo.setText(String.valueOf(((Modelo.Periferico) activoSeleccionado).getAnniosUso()));
         } else {
             txtAnniosUsoActivo.setText("0");
         }
@@ -629,8 +628,7 @@ public class Vista extends JFrame {
 
         cambiarPanelEspecifico();
 
-        if (activoSeleccionado instanceof Cpu) {
-            Cpu cpu = (Cpu) activoSeleccionado;
+        if (activoSeleccionado instanceof Modelo.Cpu cpu) {
             if (txtProcesador != null) {
                 txtProcesador.setText(cpu.getProcesador() != null ? cpu.getProcesador() : "");
             }
@@ -640,8 +638,7 @@ public class Vista extends JFrame {
             if (txtAlmacenamiento != null) {
                 txtAlmacenamiento.setText(cpu.getAlmacenamiento() != null ? cpu.getAlmacenamiento() : "");
             }
-        } else if (activoSeleccionado instanceof Monitor) {
-            Monitor mon = (Monitor) activoSeleccionado;
+        } else if (activoSeleccionado instanceof Modelo.Monitor mon) {
             if (txtResolucion != null) {
                 txtResolucion.setText(mon.getResolucion() != null ? mon.getResolucion() : "");
             }
@@ -651,16 +648,14 @@ public class Vista extends JFrame {
             if (txtConexionMonitor != null) {
                 txtConexionMonitor.setText(mon.getTipoConexion() != null ? mon.getTipoConexion() : "");
             }
-        } else if (activoSeleccionado instanceof Mouse) {
-            Mouse mouse = (Mouse) activoSeleccionado;
+        } else if (activoSeleccionado instanceof Modelo.Mouse mouse) {
             if (txtDpi != null) {
                 txtDpi.setText(mouse.getDpi() != null ? mouse.getDpi() : "");
             }
             if (txtConexionMouse != null) {
                 txtConexionMouse.setText(mouse.getTipoConexion() != null ? mouse.getTipoConexion() : "");
             }
-        } else if (activoSeleccionado instanceof Licencia) {
-            Licencia lic = (Licencia) activoSeleccionado;
+        } else if (activoSeleccionado instanceof Modelo.Licencia lic) {
             SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
             if (txtFechaExpiracion != null) {
                 txtFechaExpiracion.setText(lic.getFechaExpiracion() != null ? sdf.format(lic.getFechaExpiracion()) : "");
@@ -687,7 +682,7 @@ public class Vista extends JFrame {
     }
 
     // --- CUSTODIO ---
-    public Custodio obtenerDatosCustodio() {
+    public Modelo.Custodio obtenerDatosCustodio() {
         try {
             int idCustodio = 0;
             if (!txtIdCustodio.getText().trim().isEmpty()) {
@@ -703,7 +698,7 @@ public class Vista extends JFrame {
                 return null;
             }
 
-            return new Custodio(idCustodio, cedula, nombre, apellido, rol);
+            return new Modelo.Custodio(idCustodio, cedula, nombre, apellido, rol);
         } catch (Exception e) {
             JOptionPane.showMessageDialog(this, "El ID del custodio debe ser un número entero válido.", "Error de Formato", JOptionPane.ERROR_MESSAGE);
             return null;
@@ -711,44 +706,69 @@ public class Vista extends JFrame {
     }
 
     // --- USUARIO ---
-    public Usuario obtenerDatosUsuario() {
+    public Modelo.Usuario obtenerDatosUsuario() {
         try {
             int idCustodio = Integer.parseInt(txtIdCustodioUsuario.getText().trim());
-            Custodio c = new Custodio();
+            Modelo.Custodio c = new Modelo.Custodio();
             c.setIdCustodio(idCustodio);
-            return new Usuario(0, c);
+            return new Modelo.Usuario(0, c);
         } catch (Exception e) {
             return null;
         }
     }
 
     // --- MANTENIMIENTOS ---
-    public RegMantenimiento obtenerDatosMantenimiento() {
+    public Modelo.RegMantenimiento obtenerDatosMantenimiento() {
         try {
+            String idMantenimientoStr = txtIdMantenimiento.getText().trim();
             String detalles = txtDetallesMantenimiento.getText().trim();
             String fInicioStr = txtFechaInicioMantenimiento.getText().trim();
             String fFinStr = txtFechaFinMantenimiento.getText().trim();
+            String costoStr = txtCostoMantenimiento.getText().trim().replace(",", ".");
+            String idActivoStr = txtIdActivoMantenimiento.getText().trim();
+            String idUsuarioStr = txtIdUsuarioMantenimiento.getText().trim();
 
-            if (detalles.isEmpty() || fInicioStr.isEmpty() || txtIdActivoMantenimiento.getText().trim().isEmpty() || txtIdUsuarioMantenimiento.getText().trim().isEmpty()) {
+            // Validar campos obligatorios
+            if (detalles.isEmpty() || fInicioStr.isEmpty() || idActivoStr.isEmpty() || idUsuarioStr.isEmpty()) {
+                JOptionPane.showMessageDialog(this, 
+                    "Por favor llena los campos obligatorios: Detalles, Fecha Inicio, ID Activo e ID Usuario.", 
+                    "Campos Incompletos", JOptionPane.WARNING_MESSAGE);
                 return null;
             }
 
-            String costoStr = txtCostoMantenimiento.getText().trim().replace(",", ".");
+            int idMantenimiento = idMantenimientoStr.isEmpty() ? 0 : Integer.parseInt(idMantenimientoStr);
             double costo = costoStr.isEmpty() ? 0.0 : Double.parseDouble(costoStr);
 
-            int idActivo = Integer.parseInt(txtIdActivoMantenimiento.getText().trim());
-            Activo activoAux = new Hardware(0, idActivo, "", "", "Hardware", 0.0, "", null);
+            int idActivo = Integer.parseInt(idActivoStr);
+            Modelo.Activo activoAux = new Modelo.Hardware(0, idActivo, "", "", "Hardware", 0.0, "", null);
 
-            int idUsuario = Integer.parseInt(txtIdUsuarioMantenimiento.getText().trim());
-            Usuario usuarioAux = new Usuario(idUsuario, null);
+            int idUsuario = Integer.parseInt(idUsuarioStr);
+            Modelo.Usuario usuarioAux = new Modelo.Usuario(idUsuario, null);
 
             SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+            sdf.setLenient(false); // Validación estricta de fecha real
+            
             Date fInicio = sdf.parse(fInicioStr);
-            Date fFin = fFinStr.isEmpty() ? null : sdf.parse(fFinStr);
+            Date fFin = null;
+            if (!fFinStr.isEmpty()) {
+                fFin = sdf.parse(fFinStr);
+            }
 
-            return new RegMantenimiento(0, detalles, fInicio, fFin, costo, activoAux, usuarioAux);
+            return new Modelo.RegMantenimiento(idMantenimiento, detalles, fInicio, fFin, costo, activoAux, usuarioAux);
+        } catch (NumberFormatException e) {
+            JOptionPane.showMessageDialog(this, 
+                "Error en formato numérico: Asegúrate de que Costo, ID Mantenimiento, ID Activo e ID Usuario sean números válidos.", 
+                "Error de Formato", JOptionPane.ERROR_MESSAGE);
+            return null;
+        } catch (java.text.ParseException e) {
+            JOptionPane.showMessageDialog(this, 
+                "El formato de la fecha debe ser estrictamente YYYY-MM-DD (Ej: 2026-07-23).", 
+                "Error de Fecha", JOptionPane.ERROR_MESSAGE);
+            return null;
         } catch (Exception e) {
-            System.err.println("Error en obtenerDatosMantenimiento: " + e.getMessage());
+            JOptionPane.showMessageDialog(this, 
+                "Error al procesar los datos del mantenimiento: " + e.getMessage(), 
+                "Error", JOptionPane.ERROR_MESSAGE);
             return null;
         }
     }
